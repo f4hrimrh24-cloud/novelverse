@@ -1,0 +1,2330 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NovelVerse — Platform Menulis Novel</title>
+
+<!-- Google Fonts: Cormorant Garamond (display) + DM Sans (body) + DM Mono (code) -->
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,400&family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+
+<!-- Tailwind CSS via CDN (requirement: CSS Framework) -->
+<script src="https://cdn.tailwindcss.com"></script>
+
+<style>
+  /* ═══════════════════════════════════════
+     CSS VARIABLES — Design Token System
+     Consistent dengan visual identity NovelVerse
+  ═══════════════════════════════════════ */
+  :root {
+    --navy:       #07091A;
+    --navy-2:     #0C0E24;
+    --navy-3:     #10142E;
+    --purple:     #150F35;
+    --gold:       #C9A96E;
+    --gold-lt:    #E2C98A;
+    --gold-dim:   rgba(201,169,110,0.12);
+    --white:      #F5F3EF;
+    --white-dim:  rgba(245,243,239,0.65);
+    --gray:       #6E6D80;
+    --gray-lt:    #9A99A8;
+    --border:     rgba(201,169,110,0.15);
+    --border-f:   rgba(255,255,255,0.06);
+    --success:    #4ADE80;
+    --danger:     #F87171;
+    --warning:    #FBBF24;
+    --info:       #60A5FA;
+    --r:          10px;
+    --r-lg:       16px;
+  }
+
+  /* ═══════════════════════════════════════
+     RESET & BASE
+  ═══════════════════════════════════════ */
+  *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--navy);
+    color: var(--white);
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* ═══════════════════════════════════════
+     STAR BACKGROUND (animated canvas)
+  ═══════════════════════════════════════ */
+  #stars {
+    position: fixed; top: 0; left: 0;
+    width: 100%; height: 100%;
+    pointer-events: none; z-index: 0; opacity: 0.5;
+  }
+
+  /* ═══════════════════════════════════════
+     TYPOGRAPHY
+  ═══════════════════════════════════════ */
+  .font-display { font-family: 'Cormorant Garamond', serif; }
+  .font-mono    { font-family: 'DM Mono', monospace; }
+
+  /* ═══════════════════════════════════════
+     NAV
+  ═══════════════════════════════════════ */
+  nav {
+    position: fixed; top: 0; left: 0; right: 0; z-index: 1000;
+    height: 68px;
+    background: rgba(7,9,26,0.8);
+    backdrop-filter: blur(20px);
+    border-bottom: 1px solid var(--border-f);
+    display: flex; align-items: center;
+    padding: 0 5%;
+    justify-content: space-between;
+    transition: all .3s;
+  }
+  nav.scrolled { background: rgba(7,9,26,0.96); border-bottom-color: var(--border); }
+  .nav-logo {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 22px; font-weight: 600;
+    color: var(--white); letter-spacing: 0.5px;
+  }
+  .nav-logo span { color: var(--gold); font-style: italic; }
+  .nav-links { display: flex; gap: 28px; align-items: center; }
+  .nav-links a {
+    font-size: 13px; color: var(--gray-lt); text-decoration: none;
+    letter-spacing: 0.3px; transition: color .2s;
+  }
+  .nav-links a:hover { color: var(--white); }
+  .nav-cta {
+    background: var(--gold); color: var(--navy);
+    padding: 8px 20px; border-radius: 100px;
+    font-size: 13px; font-weight: 600;
+    text-decoration: none; transition: all .2s;
+  }
+  .nav-cta:hover { background: var(--gold-lt); transform: translateY(-1px); }
+
+  /* Hamburger mobile */
+  #menu-toggle {
+    display: none; background: none; border: none;
+    cursor: pointer; color: var(--white); padding: 8px;
+  }
+  .mobile-menu {
+    display: none; position: fixed;
+    top: 68px; left: 0; right: 0;
+    background: rgba(7,9,26,0.98);
+    backdrop-filter: blur(20px);
+    border-bottom: 1px solid var(--border);
+    z-index: 999; padding: 20px 5%;
+    flex-direction: column; gap: 16px;
+  }
+  .mobile-menu a {
+    font-size: 15px; color: var(--white-dim);
+    text-decoration: none; padding: 10px 0;
+    border-bottom: 1px solid var(--border-f);
+  }
+  .mobile-menu.open { display: flex; }
+
+  /* ═══════════════════════════════════════
+     TABS (navigasi halaman)
+  ═══════════════════════════════════════ */
+  .tab-bar {
+    position: fixed; top: 68px; left: 0; right: 0; z-index: 900;
+    background: rgba(10,12,30,0.9);
+    backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--border-f);
+    display: flex; overflow-x: auto;
+    scrollbar-width: none;
+    padding: 0 5%;
+  }
+  .tab-bar::-webkit-scrollbar { display: none; }
+  .tab-btn {
+    flex-shrink: 0; padding: 0 20px; height: 48px;
+    background: none; border: none; cursor: pointer;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 13px; color: var(--gray);
+    border-bottom: 2px solid transparent;
+    transition: all .2s; white-space: nowrap;
+  }
+  .tab-btn:hover { color: var(--white-dim); }
+  .tab-btn.active { color: var(--gold); border-bottom-color: var(--gold); }
+
+  /* ═══════════════════════════════════════
+     PAGE SECTIONS
+  ═══════════════════════════════════════ */
+  .page { display: none; padding-top: 116px; min-height: 100vh; }
+  .page.active { display: block; }
+  .container { max-width: 1140px; margin: 0 auto; padding: 0 5%; }
+
+  /* ═══════════════════════════════════════
+     CARDS & PANELS
+  ═══════════════════════════════════════ */
+  .card {
+    background: rgba(15,12,40,0.6);
+    border: 1px solid var(--border);
+    border-radius: var(--r-lg);
+    backdrop-filter: blur(8px);
+  }
+  .card-inner { padding: 24px 28px; }
+
+  /* ═══════════════════════════════════════
+     FORMS
+  ═══════════════════════════════════════ */
+  .form-group { margin-bottom: 16px; }
+  .form-label {
+    display: block; font-size: 12px; letter-spacing: 1.5px;
+    text-transform: uppercase; color: var(--gold);
+    margin-bottom: 8px;
+  }
+  .form-input, .form-select, .form-textarea {
+    width: 100%; padding: 12px 16px;
+    background: rgba(7,9,26,0.8);
+    border: 1px solid var(--border);
+    border-radius: var(--r); color: var(--white);
+    font-family: 'DM Sans', sans-serif; font-size: 14px;
+    transition: border-color .2s, box-shadow .2s;
+    outline: none;
+  }
+  .form-input:focus, .form-select:focus, .form-textarea:focus {
+    border-color: var(--gold); box-shadow: 0 0 0 3px var(--gold-dim);
+  }
+  .form-input::placeholder, .form-textarea::placeholder { color: var(--gray); }
+  .form-select option { background: var(--navy-2); }
+  .form-textarea { resize: vertical; min-height: 90px; line-height: 1.6; }
+  .form-error {
+    font-size: 12px; color: var(--danger); margin-top: 5px; display: none;
+  }
+  .form-error.show { display: block; }
+
+  /* ═══════════════════════════════════════
+     BUTTONS
+  ═══════════════════════════════════════ */
+  .btn {
+    display: inline-flex; align-items: center; gap: 8px;
+    padding: 11px 24px; border-radius: 100px;
+    font-family: 'DM Sans', sans-serif; font-size: 13px; font-weight: 600;
+    cursor: pointer; border: none; transition: all .2s;
+    letter-spacing: 0.3px; white-space: nowrap;
+  }
+  .btn-primary {
+    background: var(--gold); color: var(--navy);
+  }
+  .btn-primary:hover { background: var(--gold-lt); transform: translateY(-1px); box-shadow: 0 4px 20px rgba(201,169,110,0.3); }
+  .btn-secondary {
+    background: transparent; color: var(--gold);
+    border: 1px solid var(--border);
+  }
+  .btn-secondary:hover { border-color: var(--gold); background: var(--gold-dim); }
+  .btn-danger {
+    background: rgba(248,113,113,0.15); color: var(--danger);
+    border: 1px solid rgba(248,113,113,0.3);
+  }
+  .btn-danger:hover { background: rgba(248,113,113,0.25); }
+  .btn-sm { padding: 6px 16px; font-size: 12px; }
+  .btn-full { width: 100%; justify-content: center; }
+
+  /* ═══════════════════════════════════════
+     SECTION HEADING
+  ═══════════════════════════════════════ */
+  .sec-eyebrow {
+    font-size: 10px; letter-spacing: 3px; text-transform: uppercase;
+    color: var(--gold); margin-bottom: 10px;
+    display: flex; align-items: center; gap: 10px;
+  }
+  .sec-eyebrow::before { content: ''; width: 20px; height: 1px; background: var(--gold); opacity: 0.5; }
+  .sec-title {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: clamp(28px, 4vw, 42px); font-weight: 600;
+    color: var(--white); margin-bottom: 6px; line-height: 1.1;
+  }
+  .sec-title span { color: var(--gold); font-style: italic; }
+  .sec-desc { font-size: 14px; color: var(--gray-lt); line-height: 1.7; }
+
+  /* ═══════════════════════════════════════
+     BADGE / TAG
+  ═══════════════════════════════════════ */
+  .badge {
+    display: inline-block; font-size: 10px; letter-spacing: 1px;
+    padding: 3px 10px; border-radius: 100px; font-weight: 500;
+  }
+  .badge-gold    { background: var(--gold-dim); color: var(--gold); border: 1px solid rgba(201,169,110,0.2); }
+  .badge-success { background: rgba(74,222,128,0.12); color: var(--success); border: 1px solid rgba(74,222,128,0.2); }
+  .badge-info    { background: rgba(96,165,250,0.12); color: var(--info); border: 1px solid rgba(96,165,250,0.2); }
+  .badge-danger  { background: rgba(248,113,113,0.12); color: var(--danger); border: 1px solid rgba(248,113,113,0.2); }
+
+  /* ═══════════════════════════════════════
+     TOAST NOTIFICATION
+  ═══════════════════════════════════════ */
+  #toast-container {
+    position: fixed; bottom: 24px; right: 24px; z-index: 9999;
+    display: flex; flex-direction: column; gap: 10px;
+    pointer-events: none;
+  }
+  .toast {
+    background: rgba(15,12,40,0.95);
+    border-radius: var(--r); padding: 14px 18px;
+    display: flex; align-items: center; gap: 12px;
+    border-left: 3px solid var(--gold);
+    backdrop-filter: blur(12px);
+    box-shadow: 0 8px 32px rgba(0,0,0,0.5);
+    min-width: 260px; max-width: 340px;
+    animation: toastIn .3s ease; pointer-events: all;
+    font-size: 13px; color: var(--white-dim);
+  }
+  .toast.success { border-left-color: var(--success); }
+  .toast.error   { border-left-color: var(--danger); }
+  .toast.warning { border-left-color: var(--warning); }
+  .toast-icon { font-size: 18px; flex-shrink: 0; }
+  .toast-msg  { flex: 1; }
+  .toast-out  { animation: toastOut .3s ease forwards; }
+  @keyframes toastIn  { from { opacity:0; transform:translateX(40px); } to { opacity:1; transform:translateX(0); } }
+  @keyframes toastOut { from { opacity:1; transform:translateX(0); } to { opacity:0; transform:translateX(40px); } }
+
+  /* ═══════════════════════════════════════
+     MODAL
+  ═══════════════════════════════════════ */
+  .modal-overlay {
+    display: none; position: fixed; inset: 0; z-index: 2000;
+    background: rgba(7,9,26,0.85); backdrop-filter: blur(8px);
+    align-items: center; justify-content: center; padding: 20px;
+  }
+  .modal-overlay.open { display: flex; }
+  .modal {
+    background: var(--navy-2); border: 1px solid var(--border);
+    border-radius: var(--r-lg); width: 100%; max-width: 540px;
+    max-height: 90vh; overflow-y: auto;
+    animation: modalIn .3s ease;
+  }
+  .modal-header {
+    padding: 24px 28px 0; display: flex;
+    justify-content: space-between; align-items: flex-start;
+  }
+  .modal-body   { padding: 20px 28px 28px; }
+  .modal-title  { font-family: 'Cormorant Garamond',serif; font-size: 26px; color: var(--white); }
+  .modal-close  {
+    background: none; border: none; color: var(--gray);
+    font-size: 22px; cursor: pointer; padding: 4px; line-height: 1;
+    transition: color .2s;
+  }
+  .modal-close:hover { color: var(--white); }
+  @keyframes modalIn { from { opacity:0; transform:scale(0.95) translateY(10px); } to { opacity:1; transform:scale(1) translateY(0); } }
+
+  /* ═══════════════════════════════════════
+     NOVEL CARDS (list)
+  ═══════════════════════════════════════ */
+  .novel-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 18px; margin-top: 24px;
+  }
+  .novel-card {
+    background: rgba(15,12,40,0.6);
+    border: 1px solid var(--border);
+    border-radius: var(--r-lg);
+    padding: 20px 22px;
+    transition: transform .25s, border-color .25s, box-shadow .25s;
+    position: relative; overflow: hidden;
+  }
+  .novel-card:hover {
+    transform: translateY(-3px);
+    border-color: rgba(201,169,110,0.35);
+    box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+  }
+  .novel-card::before {
+    content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px;
+    background: linear-gradient(90deg, var(--gold), transparent);
+    opacity: 0; transition: opacity .25s;
+  }
+  .novel-card:hover::before { opacity: 1; }
+  .novel-card-title {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 20px; font-weight: 600; color: var(--white);
+    margin-bottom: 6px; line-height: 1.2;
+  }
+  .novel-card-genre { margin-bottom: 10px; }
+  .novel-card-synopsis {
+    font-size: 13px; color: var(--gray-lt);
+    line-height: 1.6; margin-bottom: 14px;
+    display: -webkit-box; -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical; overflow: hidden;
+  }
+  .novel-card-meta {
+    display: flex; flex-wrap: wrap; gap: 12px;
+    font-size: 11px; color: var(--gray);
+    border-top: 1px solid var(--border-f); padding-top: 12px;
+    margin-bottom: 14px;
+  }
+  .novel-card-meta span { display: flex; align-items: center; gap: 4px; }
+  .novel-card-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+
+  /* ═══════════════════════════════════════
+     EMPTY STATE
+  ═══════════════════════════════════════ */
+  .empty-state {
+    text-align: center; padding: 80px 40px;
+    color: var(--gray);
+  }
+  .empty-state-icon { font-size: 56px; margin-bottom: 16px; opacity: 0.4; }
+  .empty-state-title { font-family: 'Cormorant Garamond',serif; font-size: 24px; color: var(--gray-lt); margin-bottom: 8px; }
+  .empty-state-desc  { font-size: 14px; line-height: 1.6; max-width: 320px; margin: 0 auto 24px; }
+
+  /* ═══════════════════════════════════════
+     SEARCH BAR
+  ═══════════════════════════════════════ */
+  .search-wrap {
+    position: relative; flex: 1; max-width: 360px;
+  }
+  .search-icon {
+    position: absolute; left: 14px; top: 50%; transform: translateY(-50%);
+    color: var(--gray); font-size: 16px; pointer-events: none;
+  }
+  .search-input {
+    width: 100%; padding: 10px 14px 10px 40px;
+    background: rgba(7,9,26,0.7);
+    border: 1px solid var(--border-f);
+    border-radius: 100px; color: var(--white);
+    font-family: 'DM Sans',sans-serif; font-size: 14px;
+    transition: border-color .2s, box-shadow .2s; outline: none;
+  }
+  .search-input:focus {
+    border-color: var(--border); box-shadow: 0 0 0 3px var(--gold-dim);
+  }
+  .search-input::placeholder { color: var(--gray); }
+
+  /* ═══════════════════════════════════════
+     STATS BAR
+  ═══════════════════════════════════════ */
+  .stats-bar {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    gap: 14px; margin-bottom: 32px;
+  }
+  .stat-card {
+    background: rgba(15,12,40,0.5);
+    border: 1px solid var(--border-f);
+    border-radius: var(--r);
+    padding: 16px 18px;
+    transition: border-color .2s;
+  }
+  .stat-card:hover { border-color: var(--border); }
+  .stat-num { font-family: 'Cormorant Garamond',serif; font-size: 32px; font-weight: 600; color: var(--gold); }
+  .stat-label { font-size: 11px; letter-spacing: 1px; text-transform: uppercase; color: var(--gray); margin-top: 2px; }
+
+  /* ═══════════════════════════════════════
+     FLOWCHART PAGE
+  ═══════════════════════════════════════ */
+  .flow-section { margin-bottom: 48px; }
+  .flow-title {
+    font-family: 'Cormorant Garamond',serif; font-size: 22px;
+    color: var(--white); margin-bottom: 4px;
+  }
+  .flow-subtitle { font-size: 13px; color: var(--gray); margin-bottom: 20px; }
+  .flowchart {
+    background: rgba(10,12,30,0.8);
+    border: 1px solid var(--border);
+    border-radius: var(--r-lg);
+    padding: 32px 24px; overflow-x: auto;
+  }
+  .fc-row {
+    display: flex; align-items: center; justify-content: center;
+    flex-direction: column; gap: 0;
+  }
+  /* Flowchart shapes */
+  .fc-terminal {
+    background: rgba(201,169,110,0.15); border: 2px solid var(--gold);
+    border-radius: 100px; padding: 10px 28px;
+    font-size: 13px; font-weight: 500; color: var(--gold);
+    min-width: 160px; text-align: center;
+  }
+  .fc-process {
+    background: rgba(15,12,40,0.8); border: 1.5px solid rgba(201,169,110,0.3);
+    border-radius: 6px; padding: 10px 24px;
+    font-size: 13px; color: var(--white-dim);
+    min-width: 240px; max-width: 320px; text-align: center;
+  }
+  .fc-decision {
+    width: 0; height: 0;
+    border-left: 70px solid transparent;
+    border-right: 70px solid transparent;
+    border-bottom: 44px solid rgba(96,165,250,0.25);
+    position: relative; margin: 0 auto;
+  }
+  .fc-decision-inner {
+    position: absolute; top: 6px; left: -56px;
+    width: 112px; text-align: center;
+    font-size: 11px; color: var(--info); font-weight: 500;
+  }
+  .fc-decision-wrap {
+    display: flex; flex-direction: column; align-items: center;
+    position: relative;
+  }
+  .fc-diamond {
+    width: 160px; height: 80px;
+    background: rgba(96,165,250,0.12);
+    border: 1.5px solid rgba(96,165,250,0.4);
+    transform: rotate(45deg) skew(-5deg,-5deg);
+    display: flex; align-items: center; justify-content: center;
+    position: relative;
+    clip-path: polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%);
+    transform: none;
+  }
+  .fc-diamond-box {
+    background: rgba(96,165,250,0.12);
+    border: 1.5px solid rgba(96,165,250,0.4);
+    clip-path: polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%);
+    width: 180px; height: 90px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 12px; color: var(--info); font-weight: 500;
+    text-align: center; padding: 0 30px;
+    flex-shrink: 0;
+  }
+  .fc-io {
+    background: rgba(74,222,128,0.1); border: 1.5px solid rgba(74,222,128,0.3);
+    padding: 10px 20px; font-size: 13px; color: var(--success);
+    min-width: 220px; text-align: center;
+    clip-path: polygon(8% 0%, 100% 0%, 92% 100%, 0% 100%);
+  }
+  .fc-arrow {
+    display: flex; flex-direction: column; align-items: center;
+    height: 28px; color: var(--gray);
+  }
+  .fc-arrow::after {
+    content: '▼'; font-size: 10px; color: var(--gray);
+  }
+  .fc-arrow-line {
+    width: 1px; background: var(--gray); flex: 1; opacity: 0.4;
+  }
+  .fc-branch {
+    display: flex; gap: 60px; justify-content: center; align-items: flex-start;
+    position: relative;
+  }
+  .fc-branch-label {
+    font-size: 10px; letter-spacing: 1px; text-transform: uppercase;
+    margin-bottom: 8px;
+  }
+  .yes { color: var(--success); }
+  .no  { color: var(--danger); }
+
+  /* ═══════════════════════════════════════
+     PSEUDOCODE
+  ═══════════════════════════════════════ */
+  .pseudo-block {
+    background: rgba(7,9,26,0.9);
+    border: 1px solid var(--border-f);
+    border-radius: var(--r); padding: 20px 24px;
+    font-family: 'DM Mono', monospace; font-size: 12.5px;
+    line-height: 1.9; color: var(--gray-lt);
+    overflow-x: auto;
+  }
+  .ps-kw    { color: #A78BFA; }   /* keyword: PROCEDURE, IF, FOR, WHILE */
+  .ps-str   { color: var(--gold); }  /* strings */
+  .ps-fn    { color: var(--info); }  /* functions */
+  .ps-cm    { color: var(--gray); font-style: italic; } /* comment */
+  .ps-num   { color: var(--success); }
+  .ps-type  { color: #F472B6; }
+
+  /* ═══════════════════════════════════════
+     CHAPTER LIST
+  ═══════════════════════════════════════ */
+  .chapter-item {
+    background: rgba(15,12,40,0.4);
+    border: 1px solid var(--border-f);
+    border-radius: var(--r); padding: 14px 18px;
+    display: flex; align-items: center; gap: 16px;
+    transition: border-color .2s; margin-bottom: 10px;
+  }
+  .chapter-item:hover { border-color: var(--border); }
+  .chapter-num {
+    width: 36px; height: 36px; border-radius: 50%;
+    background: var(--gold-dim); border: 1px solid rgba(201,169,110,0.2);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 12px; font-weight: 600; color: var(--gold); flex-shrink: 0;
+  }
+  .chapter-info { flex: 1; min-width: 0; }
+  .chapter-title { font-size: 14px; font-weight: 500; color: var(--white); margin-bottom: 3px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .chapter-meta  { font-size: 11px; color: var(--gray); }
+  .chapter-actions { display: flex; gap: 8px; flex-shrink: 0; }
+
+  /* ═══════════════════════════════════════
+     LANDING HERO
+  ═══════════════════════════════════════ */
+  .hero {
+    min-height: 90vh; display: flex; align-items: center;
+    position: relative; z-index: 1;
+    padding: 80px 5% 60px;
+  }
+  .hero-content { max-width: 680px; }
+  .hero-badge {
+    display: inline-flex; align-items: center; gap: 8px;
+    padding: 6px 18px; border: 1px solid rgba(201,169,110,0.3);
+    border-radius: 100px; background: var(--gold-dim);
+    font-size: 11px; letter-spacing: 2px; text-transform: uppercase;
+    color: var(--gold); margin-bottom: 28px;
+  }
+  .hero-title {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: clamp(40px, 7vw, 80px); font-weight: 300;
+    line-height: 1.05; color: var(--white); margin-bottom: 24px;
+  }
+  .hero-title em { font-style: italic; color: var(--gold); }
+  .hero-desc {
+    font-size: clamp(15px, 2vw, 17px); color: var(--white-dim);
+    line-height: 1.75; margin-bottom: 36px; max-width: 520px;
+  }
+  .hero-btns { display: flex; gap: 12px; flex-wrap: wrap; }
+
+  /* ═══════════════════════════════════════
+     FEATURES GRID
+  ═══════════════════════════════════════ */
+  .features-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 16px; margin-top: 28px;
+  }
+  .feature-card {
+    background: rgba(15,12,40,0.5);
+    border: 1px solid var(--border-f);
+    border-radius: var(--r-lg); padding: 24px;
+    transition: all .25s;
+  }
+  .feature-card:hover {
+    border-color: var(--border); transform: translateY(-2px);
+    background: rgba(15,12,40,0.8);
+  }
+  .feature-icon { font-size: 28px; margin-bottom: 14px; }
+  .feature-title { font-size: 16px; font-weight: 500; color: var(--white); margin-bottom: 8px; }
+  .feature-desc  { font-size: 13px; color: var(--gray-lt); line-height: 1.6; }
+
+  /* ═══════════════════════════════════════
+     RESPONSIVE BREAKPOINTS
+  ═══════════════════════════════════════ */
+  @media (max-width: 768px) {
+    .nav-links { display: none; }
+    #menu-toggle { display: block; }
+    .novel-grid { grid-template-columns: 1fr; }
+    .stats-bar  { grid-template-columns: repeat(2, 1fr); }
+    .fc-branch  { flex-direction: column; align-items: center; gap: 16px; }
+    .modal { max-width: 100%; margin: 0; border-radius: var(--r-lg) var(--r-lg) 0 0; }
+    .modal-overlay { align-items: flex-end; }
+    #toast-container { bottom: 16px; right: 16px; left: 16px; }
+    .toast { min-width: unset; max-width: unset; }
+  }
+
+  @media (max-width: 480px) {
+    .hero-btns { flex-direction: column; }
+    .btn-full-mobile { width: 100%; justify-content: center; }
+    .novel-card-actions { flex-direction: column; }
+  }
+
+  /* ═══════════════════════════════════════
+     DIVIDER
+  ═══════════════════════════════════════ */
+  .divider {
+    width: 100%; height: 1px;
+    background: linear-gradient(90deg, transparent, var(--border), transparent);
+    margin: 40px 0;
+  }
+
+  /* Skeleton loader */
+  .skeleton {
+    background: linear-gradient(90deg, rgba(30,22,80,0.4) 25%, rgba(50,35,100,0.4) 50%, rgba(30,22,80,0.4) 75%);
+    background-size: 200% 100%;
+    animation: shimmer 1.4s infinite;
+    border-radius: var(--r);
+  }
+  @keyframes shimmer { to { background-position: -200% 0; } }
+
+  /* Scroll bar */
+  ::-webkit-scrollbar { width: 6px; height: 6px; }
+  ::-webkit-scrollbar-track { background: var(--navy-2); }
+  ::-webkit-scrollbar-thumb { background: rgba(201,169,110,0.2); border-radius: 3px; }
+  ::-webkit-scrollbar-thumb:hover { background: rgba(201,169,110,0.4); }
+
+  /* Highlight text selection */
+  ::selection { background: var(--gold-dim); color: var(--gold-lt); }
+</style>
+
+<!-- Tailwind config override untuk custom colors -->
+<script>
+  tailwind.config = {
+    theme: {
+      extend: {
+        colors: {
+          navy: '#07091A',
+          gold:  '#C9A96E',
+        }
+      }
+    }
+  }
+</script>
+</head>
+
+<body>
+
+<!-- ═══════════════════════════════════════
+     STAR CANVAS (animasi background)
+═══════════════════════════════════════ -->
+<canvas id="stars"></canvas>
+
+<!-- ═══════════════════════════════════════
+     TOAST CONTAINER (notifikasi global)
+═══════════════════════════════════════ -->
+<div id="toast-container"></div>
+
+<!-- ═══════════════════════════════════════
+     MODAL EDIT NOVEL
+═══════════════════════════════════════ -->
+<div class="modal-overlay" id="modal-edit" role="dialog" aria-modal="true">
+  <div class="modal">
+    <div class="modal-header">
+      <h2 class="modal-title">✏️ Edit Novel</h2>
+      <button class="modal-close" onclick="closeModal('modal-edit')" aria-label="Tutup">&times;</button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="edit-novel-id">
+      <!-- SEQUENCE: validasi → update → re-render -->
+      <div class="form-group">
+        <label class="form-label">Judul Novel</label>
+        <input type="text" id="edit-title" class="form-input" placeholder="Masukkan judul novel…">
+        <span class="form-error" id="err-edit-title">Judul tidak boleh kosong!</span>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Genre</label>
+        <select id="edit-genre" class="form-select">
+          <option value="">— Pilih Genre —</option>
+          <option>Romance</option><option>Fantasy</option><option>Thriller</option>
+          <option>Mystery</option><option>Horror</option><option>Sci-Fi</option>
+          <option>Historical</option><option>Literary Fiction</option>
+        </select>
+        <span class="form-error" id="err-edit-genre">Genre harus dipilih!</span>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Status</label>
+        <select id="edit-status" class="form-select">
+          <option value="Draft">Draft</option>
+          <option value="Ongoing">Ongoing</option>
+          <option value="Completed">Completed</option>
+          <option value="Hiatus">Hiatus</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Sinopsis</label>
+        <textarea id="edit-synopsis" class="form-textarea" placeholder="Ceritakan tentang novelmu…"></textarea>
+        <span class="form-error" id="err-edit-synopsis">Sinopsis tidak boleh kosong!</span>
+      </div>
+      <div style="display:flex; gap:10px; margin-top:8px;">
+        <button class="btn btn-primary" onclick="saveEditNovel()" style="flex:1;">💾 Simpan Perubahan</button>
+        <button class="btn btn-secondary" onclick="closeModal('modal-edit')">Batal</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════
+     MODAL KONFIRMASI HAPUS
+═══════════════════════════════════════ -->
+<div class="modal-overlay" id="modal-delete" role="dialog" aria-modal="true">
+  <div class="modal">
+    <div class="modal-header">
+      <h2 class="modal-title">🗑️ Hapus Novel?</h2>
+      <button class="modal-close" onclick="closeModal('modal-delete')">&times;</button>
+    </div>
+    <div class="modal-body">
+      <p style="color:var(--white-dim); font-size:14px; line-height:1.7; margin-bottom:20px;">
+        Kamu yakin ingin menghapus novel <strong id="delete-novel-title" style="color:var(--white)">ini</strong>?
+        Tindakan ini <em style="color:var(--danger)">tidak dapat dibatalkan</em>.
+      </p>
+      <input type="hidden" id="delete-novel-id">
+      <div style="display:flex; gap:10px;">
+        <button class="btn btn-danger" onclick="confirmDeleteNovel()" style="flex:1;">Ya, Hapus</button>
+        <button class="btn btn-secondary" onclick="closeModal('modal-delete')">Batal</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════
+     NAVBAR
+═══════════════════════════════════════ -->
+<nav id="navbar">
+  <div class="nav-logo">Novel<span>Verse</span></div>
+  <div class="nav-links">
+    <a href="#" onclick="showTab('home')">Beranda</a>
+    <a href="#" onclick="showTab('app')">Platform</a>
+    <a href="#" onclick="showTab('flowchart')">Flowchart</a>
+    <a href="#" onclick="showTab('pseudocode')">Pseudocode</a>
+    <a class="nav-cta" href="#" onclick="showTab('app'); scrollToForm()">+ Tulis Novel</a>
+  </div>
+  <button id="menu-toggle" onclick="toggleMobile()" aria-label="Menu">
+    <svg width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+      <path d="M3 12h18M3 6h18M3 18h18"/>
+    </svg>
+  </button>
+</nav>
+
+<!-- Mobile Menu -->
+<div class="mobile-menu" id="mobile-menu">
+  <a href="#" onclick="showTab('home'); toggleMobile()">🏠 Beranda</a>
+  <a href="#" onclick="showTab('app'); toggleMobile()">📚 Platform Menulis</a>
+  <a href="#" onclick="showTab('flowchart'); toggleMobile()">📊 Flowchart</a>
+  <a href="#" onclick="showTab('pseudocode'); toggleMobile()">💻 Pseudocode</a>
+</div>
+
+<!-- ═══════════════════════════════════════
+     TAB BAR
+═══════════════════════════════════════ -->
+<div class="tab-bar" id="tab-bar">
+  <button class="tab-btn active" id="tab-home"       onclick="showTab('home')">🏠 Beranda</button>
+  <button class="tab-btn"        id="tab-app"        onclick="showTab('app')">📚 Manajemen Novel</button>
+  <button class="tab-btn"        id="tab-chapters"   onclick="showTab('chapters')">📖 Chapter Manager</button>
+  <button class="tab-btn"        id="tab-flowchart"  onclick="showTab('flowchart')">📊 Flowchart</button>
+  <button class="tab-btn"        id="tab-pseudocode" onclick="showTab('pseudocode')">💻 Pseudocode</button>
+</div>
+
+
+<!-- ══════════════════════════════════════════════════════════════
+     PAGE 1: LANDING / HOME
+══════════════════════════════════════════════════════════════ -->
+<section class="page active" id="page-home" style="position:relative; z-index:1;">
+
+  <!-- Hero -->
+  <div class="hero">
+    <div class="hero-content">
+      <div class="hero-badge">✦ Platform Menulis Novel Indonesia</div>
+      <h1 class="hero-title">
+        Di Sini<br>Setiap <em>Cerita</em><br>Punya Panggung
+      </h1>
+      <p class="hero-desc">
+        NovelVerse adalah ruang kreatif untuk penulis novel Indonesia. Kelola karyamu,
+        tulis chapter demi chapter, dan bagikan dunia imajinasimu kepada ribuan pembaca.
+      </p>
+      <div class="hero-btns">
+        <button class="btn btn-primary" onclick="showTab('app'); scrollToForm()" style="font-size:14px; padding:14px 32px;">
+          ✍️ Mulai Menulis
+        </button>
+        <button class="btn btn-secondary" onclick="showTab('app')" style="font-size:14px; padding:14px 32px;">
+          📚 Lihat Novel
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <div class="container" style="position:relative; z-index:1; padding-bottom:80px;">
+    <!-- Stats live dari localStorage -->
+    <div id="home-stats" class="stats-bar" style="margin-bottom:48px;"></div>
+
+    <div class="divider"></div>
+
+    <!-- Features -->
+    <div style="margin-bottom:16px;">
+      <div class="sec-eyebrow">Fitur Utama</div>
+      <h2 class="sec-title">Semua yang Kamu<br>Butuhkan untuk <span>Menulis</span></h2>
+    </div>
+    <div class="features-grid">
+      <div class="feature-card">
+        <div class="feature-icon">📚</div>
+        <div class="feature-title">Manajemen Novel</div>
+        <div class="feature-desc">Tambah, edit, hapus, dan kelola seluruh koleksi novel kamu dalam satu dashboard yang intuitif.</div>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">📖</div>
+        <div class="feature-title">Chapter Manager</div>
+        <div class="feature-desc">Organisasi bab-bab novelmu dengan mudah. Lacak word count dan status publikasi setiap chapter.</div>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">💾</div>
+        <div class="feature-title">Auto-Save LocalStorage</div>
+        <div class="feature-desc">Data novelmu tersimpan otomatis di browser. Tidak perlu login, tidak akan hilang saat refresh.</div>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">🔍</div>
+        <div class="feature-title">Pencarian Real-time</div>
+        <div class="feature-desc">Cari novel berdasarkan judul atau genre secara instan dengan fitur filter yang responsif.</div>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">🎨</div>
+        <div class="feature-title">Tampilan Responsif</div>
+        <div class="feature-desc">Antarmuka yang indah dan fungsional di semua device — desktop, tablet, dan smartphone.</div>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">🔔</div>
+        <div class="feature-title">Notifikasi Interaktif</div>
+        <div class="feature-desc">Toast notification yang informatif untuk setiap aksi — tambah, edit, hapus, dan validasi.</div>
+      </div>
+    </div>
+  </div>
+
+</section>
+
+
+<!-- ══════════════════════════════════════════════════════════════
+     PAGE 2: NOVEL MANAGER (CRUD Utama)
+══════════════════════════════════════════════════════════════ -->
+<section class="page" id="page-app" style="position:relative; z-index:1;">
+  <div class="container" style="padding-bottom:80px;">
+
+    <!-- Header -->
+    <div style="margin-bottom:32px; padding-top:8px;">
+      <div class="sec-eyebrow">Platform Menulis</div>
+      <h1 class="sec-title">Manajemen <span>Novel</span></h1>
+      <p class="sec-desc">Kelola seluruh koleksi novelmu — tambah, edit, hapus, dan pantau perkembangannya.</p>
+    </div>
+
+    <!-- Stats -->
+    <div id="app-stats" class="stats-bar"></div>
+
+    <!-- ─────────────────────────────────
+         FORM TAMBAH NOVEL (Sequence → Validate → Save)
+    ───────────────────────────────── -->
+    <div class="card" id="add-novel-form" style="margin-bottom:32px;">
+      <div class="card-inner">
+        <h2 style="font-family:'Cormorant Garamond',serif; font-size:22px; color:var(--white); margin-bottom:20px;">
+          ✍️ Tambah Novel Baru
+        </h2>
+
+        <!-- SEQUENCE: Judul → Genre → Status → Sinopsis → Submit -->
+        <div style="display:grid; grid-template-columns: 1fr 1fr; gap:16px;">
+
+          <!-- Input Judul -->
+          <div class="form-group">
+            <label class="form-label" for="inp-title">Judul Novel</label>
+            <input type="text" id="inp-title" class="form-input"
+              placeholder="Contoh: Bayang di Ujung Fajar…"
+              oninput="clearError('err-title')">
+            <!-- Validasi: tidak boleh kosong (IF/ELSE) -->
+            <span class="form-error" id="err-title">⚠ Judul tidak boleh kosong!</span>
+          </div>
+
+          <!-- Pilih Genre -->
+          <div class="form-group">
+            <label class="form-label" for="inp-genre">Genre</label>
+            <select id="inp-genre" class="form-select" onchange="clearError('err-genre')">
+              <option value="">— Pilih Genre —</option>
+              <option>Romance</option><option>Fantasy</option><option>Thriller</option>
+              <option>Mystery</option><option>Horror</option><option>Sci-Fi</option>
+              <option>Historical</option><option>Literary Fiction</option>
+            </select>
+            <span class="form-error" id="err-genre">⚠ Genre harus dipilih!</span>
+          </div>
+
+          <!-- Pilih Status -->
+          <div class="form-group">
+            <label class="form-label" for="inp-status">Status</label>
+            <select id="inp-status" class="form-select">
+              <option value="Draft">📝 Draft</option>
+              <option value="Ongoing">⚡ Ongoing</option>
+              <option value="Completed">✅ Completed</option>
+              <option value="Hiatus">⏸ Hiatus</option>
+            </select>
+          </div>
+
+          <!-- Input Word Count Target -->
+          <div class="form-group">
+            <label class="form-label" for="inp-target">Target Kata</label>
+            <input type="number" id="inp-target" class="form-input"
+              placeholder="Contoh: 80000" min="0" oninput="clearError('err-target')">
+            <span class="form-error" id="err-target">⚠ Target kata tidak valid!</span>
+          </div>
+        </div>
+
+        <!-- Sinopsis (full width) -->
+        <div class="form-group">
+          <label class="form-label" for="inp-synopsis">Sinopsis</label>
+          <textarea id="inp-synopsis" class="form-textarea"
+            placeholder="Ceritakan tentang novelmu — karakter, dunia, konflik utama…"
+            oninput="clearError('err-synopsis')"></textarea>
+          <span class="form-error" id="err-synopsis">⚠ Sinopsis tidak boleh kosong!</span>
+        </div>
+
+        <!-- Tombol aksi -->
+        <div style="display:flex; gap:10px; flex-wrap:wrap;">
+          <button class="btn btn-primary" onclick="addNovel()" id="btn-add">
+            ＋ Tambahkan Novel
+          </button>
+          <button class="btn btn-secondary" onclick="resetForm()">
+            ↺ Reset Form
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ─────────────────────────────────
+         TOOLBAR: Search + Filter
+    ───────────────────────────────── -->
+    <div style="display:flex; flex-wrap:wrap; gap:12px; align-items:center; margin-bottom:20px;">
+      <div class="search-wrap">
+        <span class="search-icon">🔍</span>
+        <!-- LOOPING: setiap input trigger filterNovels() yang loop array -->
+        <input type="text" id="search-input" class="search-input"
+          placeholder="Cari judul atau genre…"
+          oninput="filterNovels()">
+      </div>
+      <select id="filter-genre" class="form-select" style="width:auto; min-width:140px; padding:10px 14px; border-radius:100px;"
+        onchange="filterNovels()">
+        <option value="">Semua Genre</option>
+        <option>Romance</option><option>Fantasy</option><option>Thriller</option>
+        <option>Mystery</option><option>Horror</option><option>Sci-Fi</option>
+        <option>Historical</option><option>Literary Fiction</option>
+      </select>
+      <select id="filter-status" class="form-select" style="width:auto; min-width:140px; padding:10px 14px; border-radius:100px;"
+        onchange="filterNovels()">
+        <option value="">Semua Status</option>
+        <option>Draft</option><option>Ongoing</option>
+        <option>Completed</option><option>Hiatus</option>
+      </select>
+      <span id="result-count" style="font-size:12px; color:var(--gray); margin-left:auto;"></span>
+    </div>
+
+    <!-- ─────────────────────────────────
+         NOVEL LIST (DOM Manipulation)
+         LOOPING: forEach untuk render tiap novel
+    ───────────────────────────────── -->
+    <div id="novel-list">
+      <!-- Di-render oleh JavaScript (DOM Manipulation) -->
+    </div>
+
+  </div>
+</section>
+
+
+<!-- ══════════════════════════════════════════════════════════════
+     PAGE 3: CHAPTER MANAGER
+══════════════════════════════════════════════════════════════ -->
+<section class="page" id="page-chapters" style="position:relative; z-index:1;">
+  <div class="container" style="padding-bottom:80px;">
+
+    <div style="margin-bottom:32px; padding-top:8px;">
+      <div class="sec-eyebrow">Chapter Manager</div>
+      <h1 class="sec-title">Kelola <span>Bab</span> Novelmu</h1>
+      <p class="sec-desc">Tambah, edit, dan hapus chapter dari novelmu. Pantau progres penulisan setiap bab.</p>
+    </div>
+
+    <!-- Select novel target -->
+    <div class="card" style="margin-bottom:24px;">
+      <div class="card-inner" style="padding:18px 24px;">
+        <div style="display:flex; align-items:center; gap:16px; flex-wrap:wrap;">
+          <label class="form-label" style="margin:0; white-space:nowrap;">Novel Target:</label>
+          <select id="chapter-novel-select" class="form-select" style="flex:1; min-width:200px;" onchange="renderChapterList()">
+            <option value="">— Pilih Novel —</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <!-- Form tambah chapter -->
+    <div class="card" style="margin-bottom:24px;" id="chapter-form-wrap">
+      <div class="card-inner">
+        <h3 style="font-family:'Cormorant Garamond',serif; font-size:20px; color:var(--white); margin-bottom:18px;">
+          ➕ Tambah Chapter Baru
+        </h3>
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:14px;">
+          <div class="form-group">
+            <label class="form-label">Judul Chapter</label>
+            <input type="text" id="ch-title" class="form-input" placeholder="Contoh: Pertemuan Pertama…">
+            <span class="form-error" id="err-ch-title">Judul chapter tidak boleh kosong!</span>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Jumlah Kata</label>
+            <input type="number" id="ch-words" class="form-input" placeholder="0" min="0">
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Catatan / Ringkasan</label>
+          <textarea id="ch-notes" class="form-textarea" style="min-height:70px;"
+            placeholder="Catatan singkat tentang isi chapter…"></textarea>
+        </div>
+        <button class="btn btn-primary" onclick="addChapter()">➕ Tambah Chapter</button>
+      </div>
+    </div>
+
+    <!-- List chapters -->
+    <div id="chapter-list">
+      <!-- Rendered by JS -->
+    </div>
+
+  </div>
+</section>
+
+
+<!-- ══════════════════════════════════════════════════════════════
+     PAGE 4: FLOWCHART
+══════════════════════════════════════════════════════════════ -->
+<section class="page" id="page-flowchart" style="position:relative; z-index:1;">
+  <div class="container" style="padding-bottom:80px;">
+
+    <div style="margin-bottom:32px; padding-top:8px;">
+      <div class="sec-eyebrow">Tugas 1a — Flowchart</div>
+      <h1 class="sec-title">Flowchart <span>CRUD</span> NovelVerse</h1>
+      <p class="sec-desc">
+        Diagram alir yang menggambarkan proses Tambah, Tampil, Ubah, dan Hapus data novel
+        menggunakan simbol flowchart standar ISO 5807.
+      </p>
+    </div>
+
+    <div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(480px,1fr)); gap:24px;">
+
+      <!-- ─── Flowchart 1: TAMBAH DATA ─── -->
+      <div class="flow-section">
+        <div class="flow-title">1️⃣ Tambah Data Novel</div>
+        <div class="flow-subtitle">Alur proses ketika user menambahkan novel baru ke sistem</div>
+        <div class="flowchart">
+          <div class="fc-row">
+            <div class="fc-terminal">START</div>
+            <div class="fc-arrow"><div class="fc-arrow-line"></div></div>
+            <div class="fc-io">INPUT: Judul, Genre, Status, Sinopsis</div>
+            <div class="fc-arrow"><div class="fc-arrow-line"></div></div>
+            <!-- Diamond: validasi -->
+            <div style="display:flex; flex-direction:column; align-items:center; width:100%;">
+              <div class="fc-diamond-box">Input Kosong?</div>
+              <div style="display:flex; width:280px; justify-content:space-between; margin-top:4px;">
+                <span style="font-size:10px; color:var(--danger); letter-spacing:1px; text-transform:uppercase;">YA → Error</span>
+                <span style="font-size:10px; color:var(--success); letter-spacing:1px; text-transform:uppercase;">TIDAK →</span>
+              </div>
+            </div>
+            <div class="fc-arrow"><div class="fc-arrow-line"></div></div>
+            <div class="fc-process">Buat objek novel baru<br><span style="font-size:11px; color:var(--gray)">{ id, title, genre, status, synopsis, date }</span></div>
+            <div class="fc-arrow"><div class="fc-arrow-line"></div></div>
+            <div class="fc-process">Ambil array dari LocalStorage<br><span style="font-size:11px; color:var(--gray)">novels = getFromStorage()</span></div>
+            <div class="fc-arrow"><div class="fc-arrow-line"></div></div>
+            <div class="fc-process">Push novel baru ke array<br><span style="font-size:11px; color:var(--gray)">novels.push(newNovel)</span></div>
+            <div class="fc-arrow"><div class="fc-arrow-line"></div></div>
+            <div class="fc-process">Simpan kembali ke LocalStorage<br><span style="font-size:11px; color:var(--gray)">localStorage.setItem("novels", JSON)</span></div>
+            <div class="fc-arrow"><div class="fc-arrow-line"></div></div>
+            <div class="fc-io">OUTPUT: Render ulang daftar novel</div>
+            <div class="fc-arrow"><div class="fc-arrow-line"></div></div>
+            <div class="fc-io">OUTPUT: Tampilkan Toast Notifikasi ✅</div>
+            <div class="fc-arrow"><div class="fc-arrow-line"></div></div>
+            <div class="fc-terminal">END</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ─── Flowchart 2: TAMPIL DATA ─── -->
+      <div class="flow-section">
+        <div class="flow-title">2️⃣ Tampilkan Data Novel</div>
+        <div class="flow-subtitle">Alur looping untuk merender semua novel dari LocalStorage ke DOM</div>
+        <div class="flowchart">
+          <div class="fc-row">
+            <div class="fc-terminal">START</div>
+            <div class="fc-arrow"><div class="fc-arrow-line"></div></div>
+            <div class="fc-process">Ambil data dari LocalStorage<br><span style="font-size:11px; color:var(--gray)">JSON.parse(localStorage.getItem)</span></div>
+            <div class="fc-arrow"><div class="fc-arrow-line"></div></div>
+            <div class="fc-diamond-box">Data Kosong?</div>
+            <div style="display:flex; width:280px; justify-content:space-between; margin-top:4px;">
+              <span style="font-size:10px; color:var(--warning); letter-spacing:1px; text-transform:uppercase;">YA → Empty State</span>
+              <span style="font-size:10px; color:var(--success); letter-spacing:1px; text-transform:uppercase;">TIDAK →</span>
+            </div>
+            <div class="fc-arrow"><div class="fc-arrow-line"></div></div>
+            <div class="fc-process">Inisialisasi: i = 0</div>
+            <div class="fc-arrow"><div class="fc-arrow-line"></div></div>
+            <div class="fc-diamond-box">i &lt; novels.length?</div>
+            <div style="display:flex; width:280px; justify-content:space-between; margin-top:4px;">
+              <span style="font-size:10px; color:var(--danger); letter-spacing:1px; text-transform:uppercase;">TIDAK → Stop Loop</span>
+              <span style="font-size:10px; color:var(--success); letter-spacing:1px; text-transform:uppercase;">YA →</span>
+            </div>
+            <div class="fc-arrow"><div class="fc-arrow-line"></div></div>
+            <div class="fc-process">Buat elemen card HTML<br><span style="font-size:11px; color:var(--gray)">createNovelCard(novels[i])</span></div>
+            <div class="fc-arrow"><div class="fc-arrow-line"></div></div>
+            <div class="fc-process">Append card ke DOM<br><span style="font-size:11px; color:var(--gray)">novelList.innerHTML += card</span></div>
+            <div class="fc-arrow"><div class="fc-arrow-line"></div></div>
+            <div class="fc-process">i++ → kembali ke cek kondisi</div>
+            <div class="fc-arrow"><div class="fc-arrow-line"></div></div>
+            <div class="fc-io">OUTPUT: Semua novel ter-render di halaman</div>
+            <div class="fc-arrow"><div class="fc-arrow-line"></div></div>
+            <div class="fc-terminal">END</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ─── Flowchart 3: UBAH DATA ─── -->
+      <div class="flow-section">
+        <div class="flow-title">3️⃣ Ubah / Edit Data Novel</div>
+        <div class="flow-subtitle">Alur proses edit data — dari klik tombol edit sampai data tersimpan</div>
+        <div class="flowchart">
+          <div class="fc-row">
+            <div class="fc-terminal">START</div>
+            <div class="fc-arrow"><div class="fc-arrow-line"></div></div>
+            <div class="fc-io">INPUT: User klik tombol "Edit" pada novel</div>
+            <div class="fc-arrow"><div class="fc-arrow-line"></div></div>
+            <div class="fc-process">Cari novel berdasarkan ID<br><span style="font-size:11px; color:var(--gray)">novels.find(n => n.id === id)</span></div>
+            <div class="fc-arrow"><div class="fc-arrow-line"></div></div>
+            <div class="fc-process">Isi form modal dengan data lama<br><span style="font-size:11px; color:var(--gray)">pre-populate input fields</span></div>
+            <div class="fc-arrow"><div class="fc-arrow-line"></div></div>
+            <div class="fc-io">OUTPUT: Modal Edit terbuka</div>
+            <div class="fc-arrow"><div class="fc-arrow-line"></div></div>
+            <div class="fc-io">INPUT: User mengubah data & klik Simpan</div>
+            <div class="fc-arrow"><div class="fc-arrow-line"></div></div>
+            <div class="fc-diamond-box">Input Valid?</div>
+            <div style="display:flex; width:280px; justify-content:space-between; margin-top:4px;">
+              <span style="font-size:10px; color:var(--danger);">TIDAK → Tampil Error</span>
+              <span style="font-size:10px; color:var(--success);">YA →</span>
+            </div>
+            <div class="fc-arrow"><div class="fc-arrow-line"></div></div>
+            <div class="fc-process">Temukan index novel di array<br><span style="font-size:11px; color:var(--gray)">findIndex(n => n.id === id)</span></div>
+            <div class="fc-arrow"><div class="fc-arrow-line"></div></div>
+            <div class="fc-process">Update properti novel<br><span style="font-size:11px; color:var(--gray)">novels[idx] = { ...old, ...new }</span></div>
+            <div class="fc-arrow"><div class="fc-arrow-line"></div></div>
+            <div class="fc-process">Simpan array ke LocalStorage</div>
+            <div class="fc-arrow"><div class="fc-arrow-line"></div></div>
+            <div class="fc-io">OUTPUT: Re-render list + toast sukses</div>
+            <div class="fc-arrow"><div class="fc-arrow-line"></div></div>
+            <div class="fc-terminal">END</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ─── Flowchart 4: HAPUS DATA ─── -->
+      <div class="flow-section">
+        <div class="flow-title">4️⃣ Hapus Data Novel</div>
+        <div class="flow-subtitle">Alur konfirmasi sebelum menghapus novel dari sistem</div>
+        <div class="flowchart">
+          <div class="fc-row">
+            <div class="fc-terminal">START</div>
+            <div class="fc-arrow"><div class="fc-arrow-line"></div></div>
+            <div class="fc-io">INPUT: User klik tombol "Hapus"</div>
+            <div class="fc-arrow"><div class="fc-arrow-line"></div></div>
+            <div class="fc-io">OUTPUT: Modal konfirmasi tampil</div>
+            <div class="fc-arrow"><div class="fc-arrow-line"></div></div>
+            <div class="fc-diamond-box">User Konfirmasi Hapus?</div>
+            <div style="display:flex; width:280px; justify-content:space-between; margin-top:4px;">
+              <span style="font-size:10px; color:var(--danger);">TIDAK → Tutup modal</span>
+              <span style="font-size:10px; color:var(--success);">YA →</span>
+            </div>
+            <div class="fc-arrow"><div class="fc-arrow-line"></div></div>
+            <div class="fc-process">Filter array: hapus novel dengan ID<br><span style="font-size:11px; color:var(--gray)">novels = novels.filter(n => n.id !== id)</span></div>
+            <div class="fc-arrow"><div class="fc-arrow-line"></div></div>
+            <div class="fc-process">Simpan array baru ke LocalStorage</div>
+            <div class="fc-arrow"><div class="fc-arrow-line"></div></div>
+            <div class="fc-process">Hapus chapter yang terkait dengan novel<br><span style="font-size:11px; color:var(--gray)">chapters = chapters.filter(c => c.novelId !== id)</span></div>
+            <div class="fc-arrow"><div class="fc-arrow-line"></div></div>
+            <div class="fc-io">OUTPUT: Re-render list + toast berhasil</div>
+            <div class="fc-arrow"><div class="fc-arrow-line"></div></div>
+            <div class="fc-terminal">END</div>
+          </div>
+        </div>
+      </div>
+
+    </div><!-- /grid -->
+
+    <!-- Penjelasan alur program -->
+    <div class="divider"></div>
+    <div class="card">
+      <div class="card-inner">
+        <div class="sec-eyebrow">Penjelasan Alur Program</div>
+        <h3 class="sec-title" style="font-size:24px;">Ringkasan <span>Alur</span></h3>
+        <div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(240px,1fr)); gap:16px; margin-top:20px;">
+          <div style="padding:16px; background:rgba(15,12,40,0.4); border:1px solid var(--border-f); border-radius:var(--r);">
+            <div style="font-size:20px; margin-bottom:8px;">📥</div>
+            <div style="font-size:13px; font-weight:500; color:var(--white); margin-bottom:6px;">Tambah (CREATE)</div>
+            <div style="font-size:12px; color:var(--gray-lt); line-height:1.6;">
+              User mengisi form → validasi input (IF kosong → error) → buat objek novel dengan ID unik → push ke array → simpan ke LocalStorage → render ulang DOM.
+            </div>
+          </div>
+          <div style="padding:16px; background:rgba(15,12,40,0.4); border:1px solid var(--border-f); border-radius:var(--r);">
+            <div style="font-size:20px; margin-bottom:8px;">📋</div>
+            <div style="font-size:13px; font-weight:500; color:var(--white); margin-bottom:6px;">Tampil (READ)</div>
+            <div style="font-size:12px; color:var(--gray-lt); line-height:1.6;">
+              Baca array dari LocalStorage → jika kosong tampilkan empty state → LOOP forEach setiap novel → buat HTML card → append ke container. Filter realtime saat user mengetik.
+            </div>
+          </div>
+          <div style="padding:16px; background:rgba(15,12,40,0.4); border:1px solid var(--border-f); border-radius:var(--r);">
+            <div style="font-size:20px; margin-bottom:8px;">✏️</div>
+            <div style="font-size:13px; font-weight:500; color:var(--white); margin-bottom:6px;">Ubah (UPDATE)</div>
+            <div style="font-size:12px; color:var(--gray-lt); line-height:1.6;">
+              Klik Edit → cari novel by ID → isi modal → user ubah data → validasi → findIndex → update objek → simpan ke LocalStorage → re-render.
+            </div>
+          </div>
+          <div style="padding:16px; background:rgba(15,12,40,0.4); border:1px solid var(--border-f); border-radius:var(--r);">
+            <div style="font-size:20px; margin-bottom:8px;">🗑️</div>
+            <div style="font-size:13px; font-weight:500; color:var(--white); margin-bottom:6px;">Hapus (DELETE)</div>
+            <div style="font-size:12px; color:var(--gray-lt); line-height:1.6;">
+              Klik Hapus → konfirmasi modal → IF konfirmasi YES → filter array (remove by ID) → hapus chapter terkait → simpan → re-render.
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+
+<!-- ══════════════════════════════════════════════════════════════
+     PAGE 5: PSEUDOCODE
+══════════════════════════════════════════════════════════════ -->
+<section class="page" id="page-pseudocode" style="position:relative; z-index:1;">
+  <div class="container" style="padding-bottom:80px;">
+
+    <div style="margin-bottom:32px; padding-top:8px;">
+      <div class="sec-eyebrow">Tugas 1b + 2 + 3 — Pseudocode & Struktur Kontrol</div>
+      <h1 class="sec-title">Pseudocode <span>NovelVerse</span></h1>
+      <p class="sec-desc">
+        Pseudocode lengkap yang mencakup: Sequence, If/Else, Looping, LocalStorage,
+        DOM Manipulation, dan notifikasi interaktif.
+      </p>
+    </div>
+
+    <!-- ── PSEUDOCODE 1: TAMBAH ── -->
+    <div class="flow-section">
+      <div class="flow-title">PROCEDURE AddNovel()</div>
+      <div class="flow-subtitle">Menambah novel baru ke LocalStorage dengan validasi input</div>
+      <div class="pseudo-block">
+<span class="ps-cm">// ═══ SEQUENCE: Urutan langkah yang harus dijalankan ═══</span>
+<span class="ps-kw">PROCEDURE</span> <span class="ps-fn">AddNovel</span>():
+  <span class="ps-cm">// SEQUENCE 1: Ambil nilai dari input form</span>
+  title    <span class="ps-kw">←</span> <span class="ps-fn">GET_VALUE</span>(<span class="ps-str">"inp-title"</span>).<span class="ps-fn">trim()</span>
+  genre    <span class="ps-kw">←</span> <span class="ps-fn">GET_VALUE</span>(<span class="ps-str">"inp-genre"</span>)
+  status   <span class="ps-kw">←</span> <span class="ps-fn">GET_VALUE</span>(<span class="ps-str">"inp-status"</span>)
+  synopsis <span class="ps-kw">←</span> <span class="ps-fn">GET_VALUE</span>(<span class="ps-str">"inp-synopsis"</span>).<span class="ps-fn">trim()</span>
+  target   <span class="ps-kw">←</span> <span class="ps-fn">GET_VALUE</span>(<span class="ps-str">"inp-target"</span>) <span class="ps-kw">OR</span> <span class="ps-num">0</span>
+
+  <span class="ps-cm">// SEQUENCE 2 + IF/ELSE: Validasi input satu per satu</span>
+  isValid <span class="ps-kw">←</span> <span class="ps-kw">TRUE</span>
+
+  <span class="ps-kw">IF</span> title = <span class="ps-str">""</span> <span class="ps-kw">THEN</span>
+    <span class="ps-fn">SHOW_ERROR</span>(<span class="ps-str">"err-title"</span>)    <span class="ps-cm">// Tampilkan pesan error judul</span>
+    isValid <span class="ps-kw">←</span> <span class="ps-kw">FALSE</span>
+  <span class="ps-kw">END IF</span>
+
+  <span class="ps-kw">IF</span> genre = <span class="ps-str">""</span> <span class="ps-kw">THEN</span>
+    <span class="ps-fn">SHOW_ERROR</span>(<span class="ps-str">"err-genre"</span>)    <span class="ps-cm">// Tampilkan pesan error genre</span>
+    isValid <span class="ps-kw">←</span> <span class="ps-kw">FALSE</span>
+  <span class="ps-kw">END IF</span>
+
+  <span class="ps-kw">IF</span> synopsis = <span class="ps-str">""</span> <span class="ps-kw">THEN</span>
+    <span class="ps-fn">SHOW_ERROR</span>(<span class="ps-str">"err-synopsis"</span>)  <span class="ps-cm">// Tampilkan pesan error sinopsis</span>
+    isValid <span class="ps-kw">←</span> <span class="ps-kw">FALSE</span>
+  <span class="ps-kw">END IF</span>
+
+  <span class="ps-kw">IF</span> isValid = <span class="ps-kw">FALSE</span> <span class="ps-kw">THEN</span>
+    <span class="ps-fn">SHOW_TOAST</span>(<span class="ps-str">"Mohon lengkapi semua field!"</span>, <span class="ps-str">"error"</span>)
+    <span class="ps-kw">RETURN</span>            <span class="ps-cm">// Hentikan eksekusi jika ada field kosong</span>
+  <span class="ps-kw">END IF</span>
+
+  <span class="ps-cm">// SEQUENCE 3: Buat objek novel baru</span>
+  newNovel <span class="ps-kw">←</span> {
+    id:        <span class="ps-fn">GENERATE_ID</span>(),     <span class="ps-cm">// ID unik timestamp</span>
+    title:     title,
+    genre:     genre,
+    status:    status,
+    synopsis:  synopsis,
+    wordCount: <span class="ps-num">0</span>,
+    target:    <span class="ps-fn">parseInt</span>(target),
+    createdAt: <span class="ps-fn">NOW()</span>
+  }
+
+  <span class="ps-cm">// SEQUENCE 4: Ambil data dari LocalStorage, tambahkan, simpan</span>
+  novels <span class="ps-kw">←</span> <span class="ps-fn">LOAD_FROM_STORAGE</span>(<span class="ps-str">"nv_novels"</span>)
+  novels.<span class="ps-fn">push</span>(newNovel)
+  <span class="ps-fn">SAVE_TO_STORAGE</span>(<span class="ps-str">"nv_novels"</span>, novels)
+
+  <span class="ps-cm">// SEQUENCE 5: Reset form + re-render + notifikasi</span>
+  <span class="ps-fn">RESET_FORM</span>()
+  <span class="ps-fn">RENDER_NOVEL_LIST</span>()
+  <span class="ps-fn">UPDATE_STATS</span>()
+  <span class="ps-fn">SHOW_TOAST</span>(<span class="ps-str">"Novel berhasil ditambahkan! 🎉"</span>, <span class="ps-str">"success"</span>)
+
+<span class="ps-kw">END PROCEDURE</span>
+      </div>
+    </div>
+
+    <!-- ── PSEUDOCODE 2: TAMPIL ── -->
+    <div class="flow-section">
+      <div class="flow-title">PROCEDURE RenderNovelList()</div>
+      <div class="flow-subtitle">Menampilkan daftar novel menggunakan DOM Manipulation + LOOPING</div>
+      <div class="pseudo-block">
+<span class="ps-cm">// ═══ LOOPING: forEach untuk iterasi semua novel ═══</span>
+<span class="ps-kw">PROCEDURE</span> <span class="ps-fn">RenderNovelList</span>(searchQuery <span class="ps-kw">=</span> <span class="ps-str">""</span>, filterGenre <span class="ps-kw">=</span> <span class="ps-str">""</span>):
+  container <span class="ps-kw">←</span> <span class="ps-fn">GET_ELEMENT</span>(<span class="ps-str">"novel-list"</span>)
+  novels    <span class="ps-kw">←</span> <span class="ps-fn">LOAD_FROM_STORAGE</span>(<span class="ps-str">"nv_novels"</span>)
+
+  <span class="ps-cm">// IF/ELSE: Cek apakah data kosong → tampilkan empty state</span>
+  <span class="ps-kw">IF</span> novels.length = <span class="ps-num">0</span> <span class="ps-kw">THEN</span>
+    container.innerHTML <span class="ps-kw">←</span> <span class="ps-fn">RENDER_EMPTY_STATE</span>()
+    <span class="ps-kw">RETURN</span>
+  <span class="ps-kw">END IF</span>
+
+  <span class="ps-cm">// LOOPING 1: Filter berdasarkan search query (jika ada)</span>
+  <span class="ps-kw">IF</span> searchQuery ≠ <span class="ps-str">""</span> <span class="ps-kw">OR</span> filterGenre ≠ <span class="ps-str">""</span> <span class="ps-kw">THEN</span>
+    filtered <span class="ps-kw">←</span> []
+    <span class="ps-kw">FOR EACH</span> novel <span class="ps-kw">IN</span> novels <span class="ps-kw">DO</span>
+      matchSearch <span class="ps-kw">←</span> novel.title.<span class="ps-fn">includes</span>(searchQuery)
+                  <span class="ps-kw">OR</span> novel.genre.<span class="ps-fn">includes</span>(searchQuery)
+      matchGenre  <span class="ps-kw">←</span> (filterGenre = <span class="ps-str">""</span>) <span class="ps-kw">OR</span> (novel.genre = filterGenre)
+      <span class="ps-kw">IF</span> matchSearch <span class="ps-kw">AND</span> matchGenre <span class="ps-kw">THEN</span>
+        filtered.<span class="ps-fn">push</span>(novel)
+      <span class="ps-kw">END IF</span>
+    <span class="ps-kw">END FOR</span>
+    novels <span class="ps-kw">←</span> filtered
+  <span class="ps-kw">END IF</span>
+
+  <span class="ps-cm">// LOOPING 2: Render setiap novel ke DOM (DOM Manipulation)</span>
+  html <span class="ps-kw">←</span> <span class="ps-str">""</span>
+  <span class="ps-kw">FOR EACH</span> novel <span class="ps-kw">IN</span> novels <span class="ps-kw">DO</span>
+    <span class="ps-cm">// IF/ELSE: Tentukan warna badge status</span>
+    <span class="ps-kw">IF</span> novel.status = <span class="ps-str">"Completed"</span> <span class="ps-kw">THEN</span>
+      badgeClass <span class="ps-kw">←</span> <span class="ps-str">"badge-success"</span>
+    <span class="ps-kw">ELSE IF</span> novel.status = <span class="ps-str">"Ongoing"</span> <span class="ps-kw">THEN</span>
+      badgeClass <span class="ps-kw">←</span> <span class="ps-str">"badge-info"</span>
+    <span class="ps-kw">ELSE IF</span> novel.status = <span class="ps-str">"Hiatus"</span> <span class="ps-kw">THEN</span>
+      badgeClass <span class="ps-kw">←</span> <span class="ps-str">"badge-danger"</span>
+    <span class="ps-kw">ELSE</span>
+      badgeClass <span class="ps-kw">←</span> <span class="ps-str">"badge-gold"</span>
+    <span class="ps-kw">END IF</span>
+
+    html <span class="ps-kw">←</span> html + <span class="ps-fn">BUILD_CARD_HTML</span>(novel, badgeClass)
+  <span class="ps-kw">END FOR</span>
+
+  container.innerHTML <span class="ps-kw">←</span> html    <span class="ps-cm">// DOM Manipulation: update tampilan</span>
+
+<span class="ps-kw">END PROCEDURE</span>
+      </div>
+    </div>
+
+    <!-- ── PSEUDOCODE 3: EDIT ── -->
+    <div class="flow-section">
+      <div class="flow-title">PROCEDURE EditNovel(id) + SaveEditNovel()</div>
+      <div class="flow-subtitle">Dua prosedur yang bekerja berurutan untuk update data</div>
+      <div class="pseudo-block">
+<span class="ps-cm">// ═══ Prosedur 1: Buka modal edit & pre-populate data ═══</span>
+<span class="ps-kw">PROCEDURE</span> <span class="ps-fn">EditNovel</span>(novelId):
+  novels  <span class="ps-kw">←</span> <span class="ps-fn">LOAD_FROM_STORAGE</span>(<span class="ps-str">"nv_novels"</span>)
+  
+  <span class="ps-cm">// LOOPING: Cari novel berdasarkan ID</span>
+  novel   <span class="ps-kw">←</span> novels.<span class="ps-fn">find</span>(n <span class="ps-kw">⟹</span> n.id = novelId)
+
+  <span class="ps-cm">// IF/ELSE: Pastikan novel ditemukan</span>
+  <span class="ps-kw">IF</span> novel = <span class="ps-kw">NULL</span> <span class="ps-kw">THEN</span>
+    <span class="ps-fn">SHOW_TOAST</span>(<span class="ps-str">"Novel tidak ditemukan!"</span>, <span class="ps-str">"error"</span>)
+    <span class="ps-kw">RETURN</span>
+  <span class="ps-kw">END IF</span>
+
+  <span class="ps-cm">// SEQUENCE: Isi form modal dengan data lama</span>
+  <span class="ps-fn">SET_VALUE</span>(<span class="ps-str">"edit-novel-id"</span>,  novel.id)
+  <span class="ps-fn">SET_VALUE</span>(<span class="ps-str">"edit-title"</span>,     novel.title)
+  <span class="ps-fn">SET_VALUE</span>(<span class="ps-str">"edit-genre"</span>,     novel.genre)
+  <span class="ps-fn">SET_VALUE</span>(<span class="ps-str">"edit-status"</span>,    novel.status)
+  <span class="ps-fn">SET_VALUE</span>(<span class="ps-str">"edit-synopsis"</span>,  novel.synopsis)
+  <span class="ps-fn">OPEN_MODAL</span>(<span class="ps-str">"modal-edit"</span>)
+
+<span class="ps-kw">END PROCEDURE</span>
+
+<span class="ps-cm">// ═══ Prosedur 2: Simpan hasil edit ═══</span>
+<span class="ps-kw">PROCEDURE</span> <span class="ps-fn">SaveEditNovel</span>():
+  id       <span class="ps-kw">←</span> <span class="ps-fn">GET_VALUE</span>(<span class="ps-str">"edit-novel-id"</span>)
+  title    <span class="ps-kw">←</span> <span class="ps-fn">GET_VALUE</span>(<span class="ps-str">"edit-title"</span>).<span class="ps-fn">trim()</span>
+  genre    <span class="ps-kw">←</span> <span class="ps-fn">GET_VALUE</span>(<span class="ps-str">"edit-genre"</span>)
+  synopsis <span class="ps-kw">←</span> <span class="ps-fn">GET_VALUE</span>(<span class="ps-str">"edit-synopsis"</span>).<span class="ps-fn">trim()</span>
+
+  <span class="ps-cm">// IF/ELSE: Validasi input</span>
+  <span class="ps-kw">IF</span> title = <span class="ps-str">""</span> <span class="ps-kw">OR</span> genre = <span class="ps-str">""</span> <span class="ps-kw">OR</span> synopsis = <span class="ps-str">""</span> <span class="ps-kw">THEN</span>
+    <span class="ps-fn">SHOW_TOAST</span>(<span class="ps-str">"Semua field harus diisi!"</span>, <span class="ps-str">"error"</span>)
+    <span class="ps-kw">RETURN</span>
+  <span class="ps-kw">END IF</span>
+
+  novels <span class="ps-kw">←</span> <span class="ps-fn">LOAD_FROM_STORAGE</span>(<span class="ps-str">"nv_novels"</span>)
+  idx    <span class="ps-kw">←</span> novels.<span class="ps-fn">findIndex</span>(n <span class="ps-kw">⟹</span> n.id = id)
+
+  <span class="ps-cm">// SEQUENCE: Update properti novel yang ditemukan</span>
+  novels[idx].title    <span class="ps-kw">←</span> title
+  novels[idx].genre    <span class="ps-kw">←</span> genre
+  novels[idx].status   <span class="ps-kw">←</span> status
+  novels[idx].synopsis <span class="ps-kw">←</span> synopsis
+  novels[idx].updatedAt <span class="ps-kw">←</span> <span class="ps-fn">NOW()</span>
+
+  <span class="ps-fn">SAVE_TO_STORAGE</span>(<span class="ps-str">"nv_novels"</span>, novels)
+  <span class="ps-fn">CLOSE_MODAL</span>(<span class="ps-str">"modal-edit"</span>)
+  <span class="ps-fn">RENDER_NOVEL_LIST</span>()
+  <span class="ps-fn">SHOW_TOAST</span>(<span class="ps-str">"Novel berhasil diperbarui! ✅"</span>, <span class="ps-str">"success"</span>)
+
+<span class="ps-kw">END PROCEDURE</span>
+      </div>
+    </div>
+
+    <!-- ── PSEUDOCODE 4: HAPUS ── -->
+    <div class="flow-section">
+      <div class="flow-title">PROCEDURE DeleteNovel(id)</div>
+      <div class="flow-subtitle">Menghapus novel beserta chapter-chapter terkait dari storage</div>
+      <div class="pseudo-block">
+<span class="ps-cm">// ═══ Prosedur Hapus dengan konfirmasi modal ═══</span>
+<span class="ps-kw">PROCEDURE</span> <span class="ps-fn">OpenDeleteConfirm</span>(novelId):
+  novel <span class="ps-kw">←</span> <span class="ps-fn">FIND_NOVEL</span>(novelId)
+  <span class="ps-fn">SET_VALUE</span>(<span class="ps-str">"delete-novel-id"</span>,    novelId)
+  <span class="ps-fn">SET_TEXT</span>(<span class="ps-str">"delete-novel-title"</span>, novel.title)
+  <span class="ps-fn">OPEN_MODAL</span>(<span class="ps-str">"modal-delete"</span>)
+<span class="ps-kw">END PROCEDURE</span>
+
+<span class="ps-kw">PROCEDURE</span> <span class="ps-fn">ConfirmDeleteNovel</span>():
+  id     <span class="ps-kw">←</span> <span class="ps-fn">GET_VALUE</span>(<span class="ps-str">"delete-novel-id"</span>)
+  novels <span class="ps-kw">←</span> <span class="ps-fn">LOAD_FROM_STORAGE</span>(<span class="ps-str">"nv_novels"</span>)
+
+  <span class="ps-cm">// LOOPING via filter: Hapus novel yang id-nya cocok</span>
+  novels <span class="ps-kw">←</span> novels.<span class="ps-fn">filter</span>(n <span class="ps-kw">⟹</span> n.id ≠ id)
+  <span class="ps-fn">SAVE_TO_STORAGE</span>(<span class="ps-str">"nv_novels"</span>, novels)
+
+  <span class="ps-cm">// Hapus juga semua chapter yang terkait dengan novel ini</span>
+  chapters <span class="ps-kw">←</span> <span class="ps-fn">LOAD_FROM_STORAGE</span>(<span class="ps-str">"nv_chapters"</span>)
+  chapters <span class="ps-kw">←</span> chapters.<span class="ps-fn">filter</span>(c <span class="ps-kw">⟹</span> c.novelId ≠ id)
+  <span class="ps-fn">SAVE_TO_STORAGE</span>(<span class="ps-str">"nv_chapters"</span>, chapters)
+
+  <span class="ps-fn">CLOSE_MODAL</span>(<span class="ps-str">"modal-delete"</span>)
+  <span class="ps-fn">RENDER_NOVEL_LIST</span>()
+  <span class="ps-fn">UPDATE_STATS</span>()
+  <span class="ps-fn">SHOW_TOAST</span>(<span class="ps-str">"Novel telah dihapus."</span>, <span class="ps-str">"warning"</span>)
+
+<span class="ps-kw">END PROCEDURE</span>
+      </div>
+    </div>
+
+    <!-- ── PSEUDOCODE 5: LocalStorage ── -->
+    <div class="flow-section">
+      <div class="flow-title">PROCEDURE Storage Helpers</div>
+      <div class="flow-subtitle">Fungsi utilitas untuk operasi LocalStorage</div>
+      <div class="pseudo-block">
+<span class="ps-cm">// ═══ Helper: Load dari LocalStorage ═══</span>
+<span class="ps-kw">FUNCTION</span> <span class="ps-fn">loadFromStorage</span>(key):
+  raw <span class="ps-kw">←</span> <span class="ps-fn">localStorage.getItem</span>(key)
+  <span class="ps-kw">IF</span> raw = <span class="ps-kw">NULL</span> <span class="ps-kw">THEN</span>
+    <span class="ps-kw">RETURN</span> []           <span class="ps-cm">// Kembalikan array kosong jika belum ada data</span>
+  <span class="ps-kw">ELSE</span>
+    <span class="ps-kw">RETURN</span> <span class="ps-fn">JSON.parse</span>(raw)
+  <span class="ps-kw">END IF</span>
+<span class="ps-kw">END FUNCTION</span>
+
+<span class="ps-cm">// ═══ Helper: Simpan ke LocalStorage ═══</span>
+<span class="ps-kw">FUNCTION</span> <span class="ps-fn">saveToStorage</span>(key, data):
+  <span class="ps-fn">localStorage.setItem</span>(key, <span class="ps-fn">JSON.stringify</span>(data))
+<span class="ps-kw">END FUNCTION</span>
+
+<span class="ps-cm">// ═══ Helper: Notifikasi Toast ═══</span>
+<span class="ps-kw">FUNCTION</span> <span class="ps-fn">showToast</span>(message, type):
+  icon <span class="ps-kw">←</span> <span class="ps-str">"ℹ️"</span>
+  <span class="ps-kw">IF</span>      type = <span class="ps-str">"success"</span> <span class="ps-kw">THEN</span> icon <span class="ps-kw">←</span> <span class="ps-str">"✅"</span>
+  <span class="ps-kw">ELSE IF</span> type = <span class="ps-str">"error"</span>   <span class="ps-kw">THEN</span> icon <span class="ps-kw">←</span> <span class="ps-str">"❌"</span>
+  <span class="ps-kw">ELSE IF</span> type = <span class="ps-str">"warning"</span> <span class="ps-kw">THEN</span> icon <span class="ps-kw">←</span> <span class="ps-str">"⚠️"</span>
+  <span class="ps-kw">END IF</span>
+  toastEl <span class="ps-kw">←</span> <span class="ps-fn">CREATE_ELEMENT</span>(<span class="ps-str">"div"</span>)
+  toastEl.className <span class="ps-kw">←</span> <span class="ps-str">"toast " + type</span>
+  toastEl.innerHTML <span class="ps-kw">←</span> icon + <span class="ps-str">" "</span> + message
+  <span class="ps-fn">APPEND</span>(<span class="ps-str">"toast-container"</span>, toastEl)
+  <span class="ps-fn">DELAY</span>(<span class="ps-num">3000</span>ms) <span class="ps-kw">THEN</span> <span class="ps-fn">REMOVE</span>(toastEl)   <span class="ps-cm">// Auto-dismiss setelah 3 detik</span>
+<span class="ps-kw">END FUNCTION</span>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+
+<!-- ═══════════════════════════════════════
+     FOOTER
+═══════════════════════════════════════ -->
+<footer style="position:relative; z-index:1; border-top:1px solid var(--border-f); padding:32px 5%; text-align:center;">
+  <div style="font-family:'Cormorant Garamond',serif; font-size:22px; color:var(--white); margin-bottom:8px;">
+    Novel<span style="color:var(--gold); font-style:italic;">Verse</span>
+  </div>
+  <div style="font-size:12px; color:var(--gray);">
+    Tugas StartUp Web — Front-End Development · Universitas Amikom Purwokerto · 2025
+  </div>
+  <div style="font-size:11px; color:var(--gray); margin-top:6px;">
+    HTML5 · CSS3 · Tailwind CSS · Vanilla JavaScript · LocalStorage API
+  </div>
+</footer>
+
+
+<!-- ═══════════════════════════════════════
+     JAVASCRIPT — CORE APPLICATION
+     Mencakup: Sequence, If/Else, Looping,
+     DOM Manipulation, LocalStorage, Toast
+═══════════════════════════════════════ -->
+<script>
+/* ════════════════════════════════════════════
+   STAR CANVAS ANIMATION
+════════════════════════════════════════════ */
+(function() {
+  const canvas = document.getElementById('stars');
+  const ctx = canvas.getContext('2d');
+  let stars = [];
+
+  function resize() {
+    canvas.width  = window.innerWidth;
+    canvas.height = window.innerHeight;
+  }
+
+  function initStars() {
+    stars = [];
+    // LOOPING: Buat 160 bintang secara random
+    for (let i = 0; i < 160; i++) {
+      stars.push({
+        x: Math.random() * canvas.width,
+        y: Math.random() * canvas.height,
+        r: Math.random() * 1.2 + 0.2,
+        a: Math.random(),
+        speed: Math.random() * 0.003 + 0.001,
+        twinkle: Math.random() * Math.PI * 2
+      });
+    }
+  }
+
+  function draw() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    // LOOPING: Render setiap bintang
+    stars.forEach(s => {
+      s.twinkle += s.speed;
+      const alpha = s.a * (0.5 + 0.5 * Math.sin(s.twinkle));
+      ctx.beginPath();
+      ctx.arc(s.x, s.y, s.r, 0, Math.PI * 2);
+      ctx.fillStyle = `rgba(201,169,110,${alpha})`;
+      ctx.fill();
+    });
+    requestAnimationFrame(draw);
+  }
+
+  window.addEventListener('resize', () => { resize(); initStars(); });
+  resize();
+  initStars();
+  draw();
+})();
+
+
+/* ════════════════════════════════════════════
+   NAV SCROLL EFFECT
+════════════════════════════════════════════ */
+window.addEventListener('scroll', () => {
+  // IF/ELSE: Tambah class scrolled jika user scroll
+  const nav = document.getElementById('navbar');
+  if (window.scrollY > 20) {
+    nav.classList.add('scrolled');
+  } else {
+    nav.classList.remove('scrolled');
+  }
+});
+
+
+/* ════════════════════════════════════════════
+   MOBILE MENU TOGGLE
+════════════════════════════════════════════ */
+function toggleMobile() {
+  const menu = document.getElementById('mobile-menu');
+  menu.classList.toggle('open');
+}
+
+
+/* ════════════════════════════════════════════
+   TAB NAVIGATION (SPA-style)
+   SEQUENCE: Hide all → Show target → Update tab
+════════════════════════════════════════════ */
+function showTab(tabName) {
+  // SEQUENCE 1: Sembunyikan semua page
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  // SEQUENCE 2: Nonaktifkan semua tab button
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  // SEQUENCE 3: Tampilkan page yang dipilih
+  document.getElementById(`page-${tabName}`).classList.add('active');
+  // SEQUENCE 4: Aktifkan tab button yang sesuai
+  document.getElementById(`tab-${tabName}`).classList.add('active');
+  // SEQUENCE 5: Scroll ke atas
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+  // SEQUENCE 6: Update stats jika ada
+  updateStats();
+  // SEQUENCE 7: Populate select di chapter manager
+  if (tabName === 'chapters') populateNovelSelect();
+}
+
+function scrollToForm() {
+  setTimeout(() => {
+    const form = document.getElementById('add-novel-form');
+    if (form) form.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  }, 100);
+}
+
+
+/* ════════════════════════════════════════════
+   LOCALSTORAGE HELPERS
+   Fungsi reusable untuk simpan/ambil data
+════════════════════════════════════════════ */
+
+// Ambil data dari LocalStorage (return array kosong jika belum ada)
+function loadFromStorage(key) {
+  try {
+    const raw = localStorage.getItem(key);
+    // IF/ELSE: Cek apakah data null atau tidak
+    return raw ? JSON.parse(raw) : [];
+  } catch (e) {
+    console.error('Error loading from storage:', e);
+    return [];
+  }
+}
+
+// Simpan data ke LocalStorage
+function saveToStorage(key, data) {
+  try {
+    localStorage.setItem(key, JSON.stringify(data));
+  } catch (e) {
+    console.error('Error saving to storage:', e);
+    showToast('Gagal menyimpan data!', 'error');
+  }
+}
+
+// Generate ID unik berdasarkan timestamp + random
+function generateId() {
+  return `nv_${Date.now()}_${Math.random().toString(36).substr(2, 6)}`;
+}
+
+// Format tanggal ke string yang readable
+function formatDate(isoString) {
+  const d = new Date(isoString);
+  return d.toLocaleDateString('id-ID', { day:'numeric', month:'short', year:'numeric' });
+}
+
+
+/* ════════════════════════════════════════════
+   TOAST NOTIFICATION
+   Memberikan respon interaktif kepada user
+════════════════════════════════════════════ */
+function showToast(message, type = 'info') {
+  const container = document.getElementById('toast-container');
+
+  // IF/ELSE: Tentukan icon berdasarkan tipe notifikasi
+  let icon;
+  if      (type === 'success') icon = '✅';
+  else if (type === 'error')   icon = '❌';
+  else if (type === 'warning') icon = '⚠️';
+  else                         icon = 'ℹ️';
+
+  // SEQUENCE: Buat elemen toast → Append → Auto-remove
+  const toast = document.createElement('div');
+  toast.className = `toast ${type}`;
+  toast.innerHTML = `<span class="toast-icon">${icon}</span><span class="toast-msg">${message}</span>`;
+  container.appendChild(toast);
+
+  // SEQUENCE: Auto-dismiss setelah 3 detik
+  setTimeout(() => {
+    toast.classList.add('toast-out');
+    setTimeout(() => {
+      if (toast.parentNode) toast.parentNode.removeChild(toast);
+    }, 300);
+  }, 3000);
+}
+
+
+/* ════════════════════════════════════════════
+   MODAL HELPERS
+════════════════════════════════════════════ */
+function openModal(id)  { document.getElementById(id).classList.add('open'); }
+function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+
+// Tutup modal jika klik di luar area modal
+document.querySelectorAll('.modal-overlay').forEach(overlay => {
+  overlay.addEventListener('click', function(e) {
+    if (e.target === this) this.classList.remove('open');
+  });
+});
+
+
+/* ════════════════════════════════════════════
+   FORM VALIDATION HELPERS
+════════════════════════════════════════════ */
+function showError(id) {
+  const el = document.getElementById(id);
+  if (el) el.classList.add('show');
+}
+
+function clearError(id) {
+  const el = document.getElementById(id);
+  if (el) el.classList.remove('show');
+}
+
+function clearAllErrors() {
+  // LOOPING: Hapus semua error messages
+  document.querySelectorAll('.form-error').forEach(el => el.classList.remove('show'));
+}
+
+
+/* ════════════════════════════════════════════
+   STATUS BADGE HELPER
+   IF/ELSE untuk menentukan class badge
+════════════════════════════════════════════ */
+function getStatusBadge(status) {
+  // IF/ELSE: Setiap status punya warna badge berbeda
+  if      (status === 'Completed') return 'badge-success';
+  else if (status === 'Ongoing')   return 'badge-info';
+  else if (status === 'Hiatus')    return 'badge-danger';
+  else                             return 'badge-gold';  // Draft
+}
+
+function getStatusIcon(status) {
+  if      (status === 'Completed') return '✅';
+  else if (status === 'Ongoing')   return '⚡';
+  else if (status === 'Hiatus')    return '⏸';
+  else                             return '📝';
+}
+
+
+/* ════════════════════════════════════════════
+   TAMBAH NOVEL (CREATE)
+   Implementasi: Sequence + If/Else + LocalStorage
+════════════════════════════════════════════ */
+function addNovel() {
+  clearAllErrors();
+
+  // SEQUENCE 1: Ambil semua nilai input
+  const title    = document.getElementById('inp-title').value.trim();
+  const genre    = document.getElementById('inp-genre').value;
+  const status   = document.getElementById('inp-status').value;
+  const synopsis = document.getElementById('inp-synopsis').value.trim();
+  const target   = parseInt(document.getElementById('inp-target').value) || 0;
+
+  // SEQUENCE 2 + IF/ELSE: Validasi — tidak boleh kosong
+  let isValid = true;
+
+  if (!title) {
+    showError('err-title');
+    isValid = false;
+  }
+  if (!genre) {
+    showError('err-genre');
+    isValid = false;
+  }
+  if (!synopsis) {
+    showError('err-synopsis');
+    isValid = false;
+  }
+  // IF/ELSE: Cek target kata
+  if (target < 0) {
+    showError('err-target');
+    isValid = false;
+  }
+
+  // IF: Jika ada validasi yang gagal, hentikan proses
+  if (!isValid) {
+    showToast('Mohon lengkapi semua field yang diperlukan!', 'error');
+    return; // Hentikan eksekusi (guard clause)
+  }
+
+  // SEQUENCE 3: Buat objek novel baru
+  const newNovel = {
+    id:        generateId(),
+    title:     title,
+    genre:     genre,
+    status:    status,
+    synopsis:  synopsis,
+    wordCount: 0,
+    target:    target,
+    createdAt: new Date().toISOString()
+  };
+
+  // SEQUENCE 4: Load, push, save ke LocalStorage
+  const novels = loadFromStorage('nv_novels');
+  novels.push(newNovel);
+  saveToStorage('nv_novels', novels);
+
+  // SEQUENCE 5: Reset form + re-render + notifikasi
+  resetForm();
+  renderNovelList();
+  updateStats();
+  showToast(`Novel "${title}" berhasil ditambahkan! 🎉`, 'success');
+}
+
+
+/* ════════════════════════════════════════════
+   RESET FORM
+════════════════════════════════════════════ */
+function resetForm() {
+  // LOOPING: Reset semua input dalam form
+  ['inp-title', 'inp-genre', 'inp-synopsis', 'inp-target'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.value = '';
+  });
+  document.getElementById('inp-status').value = 'Draft';
+  clearAllErrors();
+}
+
+
+/* ════════════════════════════════════════════
+   RENDER DAFTAR NOVEL (READ + DOM Manipulation)
+   LOOPING: forEach untuk iterasi semua novel
+════════════════════════════════════════════ */
+function renderNovelList(novels = null, filterQuery = '', filterGenre = '', filterStatus = '') {
+  const container = document.getElementById('novel-list');
+  if (!container) return;
+
+  // Jika novels tidak di-pass, load dari storage
+  if (!novels) novels = loadFromStorage('nv_novels');
+
+  // LOOPING + IF/ELSE: Filter berdasarkan search query
+  let filtered = novels;
+  if (filterQuery || filterGenre || filterStatus) {
+    filtered = novels.filter(n => {
+      const q = filterQuery.toLowerCase();
+      // IF: Cek apakah memenuhi semua filter
+      const matchQ = !q || n.title.toLowerCase().includes(q) || n.genre.toLowerCase().includes(q);
+      const matchG = !filterGenre || n.genre === filterGenre;
+      const matchS = !filterStatus || n.status === filterStatus;
+      return matchQ && matchG && matchS;
+    });
+  }
+
+  // Update result count
+  const countEl = document.getElementById('result-count');
+  if (countEl) {
+    countEl.textContent = `${filtered.length} novel ditemukan`;
+  }
+
+  // IF/ELSE: Tampilkan empty state jika tidak ada data
+  if (filtered.length === 0) {
+    if (novels.length === 0) {
+      // Belum ada novel sama sekali
+      container.innerHTML = `
+        <div class="empty-state">
+          <div class="empty-state-icon">📚</div>
+          <div class="empty-state-title">Belum ada novel</div>
+          <div class="empty-state-desc">Mulai perjalanan menulismu! Tambahkan novel pertamamu menggunakan form di atas.</div>
+          <button class="btn btn-primary" onclick="scrollToForm()">✍️ Tambah Novel Pertama</button>
+        </div>`;
+    } else {
+      // Ada novel tapi tidak match filter
+      container.innerHTML = `
+        <div class="empty-state">
+          <div class="empty-state-icon">🔍</div>
+          <div class="empty-state-title">Tidak ditemukan</div>
+          <div class="empty-state-desc">Tidak ada novel yang cocok dengan pencarianmu. Coba kata kunci lain.</div>
+        </div>`;
+    }
+    return;
+  }
+
+  // LOOPING: Render setiap novel ke HTML (DOM Manipulation)
+  let html = '<div class="novel-grid">';
+  filtered.forEach(novel => {
+    // IF/ELSE: Tentukan badge status
+    const badgeClass = getStatusBadge(novel.status);
+    const statusIcon = getStatusIcon(novel.status);
+
+    // IF: Hitung progress word count jika ada target
+    const progressHtml = novel.target > 0
+      ? `<div style="margin-top:8px;">
+           <div style="display:flex;justify-content:space-between;font-size:11px;color:var(--gray);margin-bottom:4px;">
+             <span>Progress</span>
+             <span>${Math.min(100, Math.round((novel.wordCount / novel.target) * 100))}%</span>
+           </div>
+           <div style="height:3px;background:rgba(255,255,255,0.06);border-radius:2px;overflow:hidden;">
+             <div style="height:100%;background:linear-gradient(90deg,var(--gold),var(--gold-lt));
+               width:${Math.min(100, (novel.wordCount / novel.target) * 100)}%;transition:width .5s;"></div>
+           </div>
+         </div>`
+      : '';
+
+    html += `
+      <div class="novel-card" id="card-${novel.id}">
+        <div class="novel-card-title">${escapeHtml(novel.title)}</div>
+        <div class="novel-card-genre">
+          <span class="badge badge-gold">${novel.genre}</span>
+          <span class="badge ${badgeClass}" style="margin-left:6px;">${statusIcon} ${novel.status}</span>
+        </div>
+        <div class="novel-card-synopsis">${escapeHtml(novel.synopsis)}</div>
+        ${progressHtml}
+        <div class="novel-card-meta">
+          <span>📅 ${formatDate(novel.createdAt)}</span>
+          <span>✍️ ${novel.wordCount.toLocaleString('id-ID')} kata</span>
+          ${novel.target > 0 ? `<span>🎯 Target: ${novel.target.toLocaleString('id-ID')}</span>` : ''}
+        </div>
+        <div class="novel-card-actions">
+          <button class="btn btn-secondary btn-sm" onclick="openEditModal('${novel.id}')">✏️ Edit</button>
+          <button class="btn btn-secondary btn-sm" onclick="openChapterFromNovel('${novel.id}')">📖 Chapter</button>
+          <button class="btn btn-danger btn-sm" onclick="openDeleteModal('${novel.id}')">🗑️ Hapus</button>
+        </div>
+      </div>`;
+  });
+  html += '</div>';
+
+  // DOM Manipulation: Update innerHTML container
+  container.innerHTML = html;
+}
+
+
+/* ════════════════════════════════════════════
+   FILTER NOVEL (Search + Genre + Status)
+   LOOPING: dipanggil setiap oninput/onchange
+════════════════════════════════════════════ */
+function filterNovels() {
+  const query        = document.getElementById('search-input').value;
+  const filterGenre  = document.getElementById('filter-genre').value;
+  const filterStatus = document.getElementById('filter-status').value;
+  renderNovelList(null, query, filterGenre, filterStatus);
+}
+
+
+/* ════════════════════════════════════════════
+   EDIT NOVEL — BUKA MODAL
+════════════════════════════════════════════ */
+function openEditModal(novelId) {
+  const novels = loadFromStorage('nv_novels');
+  // LOOPING via find: Cari novel berdasarkan ID
+  const novel = novels.find(n => n.id === novelId);
+
+  // IF: Novel tidak ditemukan
+  if (!novel) {
+    showToast('Novel tidak ditemukan!', 'error');
+    return;
+  }
+
+  // SEQUENCE: Isi semua field di modal edit
+  document.getElementById('edit-novel-id').value = novel.id;
+  document.getElementById('edit-title').value    = novel.title;
+  document.getElementById('edit-genre').value    = novel.genre;
+  document.getElementById('edit-status').value   = novel.status;
+  document.getElementById('edit-synopsis').value = novel.synopsis;
+
+  clearAllErrors();
+  openModal('modal-edit');
+}
+
+
+/* ════════════════════════════════════════════
+   SAVE EDIT NOVEL
+════════════════════════════════════════════ */
+function saveEditNovel() {
+  // SEQUENCE 1: Ambil data dari form edit
+  const id       = document.getElementById('edit-novel-id').value;
+  const title    = document.getElementById('edit-title').value.trim();
+  const genre    = document.getElementById('edit-genre').value;
+  const status   = document.getElementById('edit-status').value;
+  const synopsis = document.getElementById('edit-synopsis').value.trim();
+
+  // SEQUENCE 2 + IF/ELSE: Validasi
+  let isValid = true;
+  if (!title)    { showError('err-edit-title');    isValid = false; }
+  if (!genre)    { showError('err-edit-genre');    isValid = false; }
+  if (!synopsis) { showError('err-edit-synopsis'); isValid = false; }
+
+  if (!isValid) {
+    showToast('Semua field harus diisi!', 'error');
+    return;
+  }
+
+  // SEQUENCE 3: Temukan dan update novel
+  const novels = loadFromStorage('nv_novels');
+  const idx = novels.findIndex(n => n.id === id);
+
+  // IF: Novel tidak ada di storage
+  if (idx === -1) {
+    showToast('Data novel tidak ditemukan!', 'error');
+    return;
+  }
+
+  // SEQUENCE 4: Update properti (spread operator untuk pertahankan data lain)
+  novels[idx] = {
+    ...novels[idx],  // Pertahankan: wordCount, target, createdAt, dll
+    title:     title,
+    genre:     genre,
+    status:    status,
+    synopsis:  synopsis,
+    updatedAt: new Date().toISOString()
+  };
+
+  // SEQUENCE 5: Simpan, tutup modal, re-render
+  saveToStorage('nv_novels', novels);
+  closeModal('modal-edit');
+  renderNovelList();
+  updateStats();
+  showToast(`Novel "${title}" berhasil diperbarui! ✅`, 'success');
+}
+
+
+/* ════════════════════════════════════════════
+   DELETE NOVEL — BUKA MODAL KONFIRMASI
+════════════════════════════════════════════ */
+function openDeleteModal(novelId) {
+  const novels = loadFromStorage('nv_novels');
+  const novel = novels.find(n => n.id === novelId);
+
+  // IF: Novel tidak ditemukan
+  if (!novel) return;
+
+  document.getElementById('delete-novel-id').value    = novelId;
+  document.getElementById('delete-novel-title').textContent = `"${novel.title}"`;
+  openModal('modal-delete');
+}
+
+
+/* ════════════════════════════════════════════
+   KONFIRMASI HAPUS NOVEL
+════════════════════════════════════════════ */
+function confirmDeleteNovel() {
+  const id = document.getElementById('delete-novel-id').value;
+
+  // SEQUENCE 1: Load novels → filter → save
+  let novels = loadFromStorage('nv_novels');
+  const deletedNovel = novels.find(n => n.id === id);
+  // LOOPING via filter: Hapus novel dengan ID yang cocok
+  novels = novels.filter(n => n.id !== id);
+  saveToStorage('nv_novels', novels);
+
+  // SEQUENCE 2: Hapus chapter terkait
+  let chapters = loadFromStorage('nv_chapters');
+  chapters = chapters.filter(c => c.novelId !== id);
+  saveToStorage('nv_chapters', chapters);
+
+  // SEQUENCE 3: Tutup modal, re-render, notifikasi
+  closeModal('modal-delete');
+  renderNovelList();
+  updateStats();
+
+  const title = deletedNovel ? `"${deletedNovel.title}"` : 'Novel';
+  showToast(`${title} telah dihapus.`, 'warning');
+}
+
+
+/* ════════════════════════════════════════════
+   CHAPTER MANAGER
+════════════════════════════════════════════ */
+function populateNovelSelect() {
+  const select = document.getElementById('chapter-novel-select');
+  if (!select) return;
+  const novels = loadFromStorage('nv_novels');
+  const currentVal = select.value;
+
+  // SEQUENCE: Reset + LOOPING untuk populate options
+  select.innerHTML = '<option value="">— Pilih Novel —</option>';
+  novels.forEach(n => {
+    const opt = document.createElement('option');
+    opt.value = n.id;
+    opt.textContent = n.title;
+    select.appendChild(opt);
+  });
+
+  // Pertahankan pilihan sebelumnya jika masih ada
+  if (currentVal && novels.some(n => n.id === currentVal)) {
+    select.value = currentVal;
+  }
+}
+
+function openChapterFromNovel(novelId) {
+  showTab('chapters');
+  setTimeout(() => {
+    const select = document.getElementById('chapter-novel-select');
+    if (select) {
+      populateNovelSelect();
+      select.value = novelId;
+      renderChapterList();
+    }
+  }, 100);
+}
+
+function addChapter() {
+  const novelId = document.getElementById('chapter-novel-select').value;
+  const title   = document.getElementById('ch-title').value.trim();
+  const words   = parseInt(document.getElementById('ch-words').value) || 0;
+  const notes   = document.getElementById('ch-notes').value.trim();
+
+  // IF/ELSE: Validasi
+  if (!novelId) {
+    showToast('Pilih novel terlebih dahulu!', 'error');
+    return;
+  }
+  if (!title) {
+    showError('err-ch-title');
+    showToast('Judul chapter tidak boleh kosong!', 'error');
+    return;
+  }
+
+  // Buat objek chapter
+  const chapter = {
+    id:        generateId(),
+    novelId:   novelId,
+    title:     title,
+    wordCount: words,
+    notes:     notes,
+    status:    'Draft',
+    createdAt: new Date().toISOString()
+  };
+
+  // Load, push, save
+  const chapters = loadFromStorage('nv_chapters');
+  // Tentukan nomor chapter
+  const novelChapters = chapters.filter(c => c.novelId === novelId);
+  chapter.number = novelChapters.length + 1;
+  chapters.push(chapter);
+  saveToStorage('nv_chapters', chapters);
+
+  // Update word count pada novel
+  const novels = loadFromStorage('nv_novels');
+  const nIdx = novels.findIndex(n => n.id === novelId);
+  if (nIdx !== -1) {
+    novels[nIdx].wordCount = (novels[nIdx].wordCount || 0) + words;
+    saveToStorage('nv_novels', novels);
+  }
+
+  // Reset form chapter
+  document.getElementById('ch-title').value  = '';
+  document.getElementById('ch-words').value  = '';
+  document.getElementById('ch-notes').value  = '';
+  clearError('err-ch-title');
+
+  renderChapterList();
+  showToast(`Chapter "${title}" berhasil ditambahkan!`, 'success');
+}
+
+function renderChapterList() {
+  const novelId   = document.getElementById('chapter-novel-select').value;
+  const container = document.getElementById('chapter-list');
+  if (!container) return;
+
+  // IF: Novel belum dipilih
+  if (!novelId) {
+    container.innerHTML = `
+      <div class="empty-state">
+        <div class="empty-state-icon">📖</div>
+        <div class="empty-state-title">Pilih novel dulu</div>
+        <div class="empty-state-desc">Pilih novel dari dropdown di atas untuk melihat dan mengelola chapter-nya.</div>
+      </div>`;
+    return;
+  }
+
+  // LOOPING: Filter chapter berdasarkan novelId
+  const chapters = loadFromStorage('nv_chapters').filter(c => c.novelId === novelId);
+
+  if (chapters.length === 0) {
+    container.innerHTML = `
+      <div class="empty-state">
+        <div class="empty-state-icon">📝</div>
+        <div class="empty-state-title">Belum ada chapter</div>
+        <div class="empty-state-desc">Tambahkan chapter pertama untuk novel ini menggunakan form di atas.</div>
+      </div>`;
+    return;
+  }
+
+  // LOOPING: Render setiap chapter
+  let html = '';
+  chapters.forEach((ch, i) => {
+    html += `
+      <div class="chapter-item" id="chitem-${ch.id}">
+        <div class="chapter-num">${ch.number || i+1}</div>
+        <div class="chapter-info">
+          <div class="chapter-title">${escapeHtml(ch.title)}</div>
+          <div class="chapter-meta">
+            ${ch.wordCount > 0 ? `✍️ ${ch.wordCount.toLocaleString('id-ID')} kata · ` : ''}
+            📅 ${formatDate(ch.createdAt)}
+            ${ch.notes ? ` · 📌 ${escapeHtml(ch.notes.substring(0,40))}${ch.notes.length>40?'…':''}` : ''}
+          </div>
+        </div>
+        <div class="chapter-actions">
+          <button class="btn btn-danger btn-sm" onclick="deleteChapter('${ch.id}', '${novelId}', ${ch.wordCount || 0})">
+            🗑️
+          </button>
+        </div>
+      </div>`;
+  });
+
+  container.innerHTML = html;
+}
+
+function deleteChapter(chapterId, novelId, wordCount) {
+  // IF: Konfirmasi sederhana
+  if (!confirm('Hapus chapter ini?')) return;
+
+  let chapters = loadFromStorage('nv_chapters');
+  chapters = chapters.filter(c => c.id !== chapterId);
+  saveToStorage('nv_chapters', chapters);
+
+  // Kurangi word count dari novel
+  const novels = loadFromStorage('nv_novels');
+  const nIdx = novels.findIndex(n => n.id === novelId);
+  if (nIdx !== -1) {
+    novels[nIdx].wordCount = Math.max(0, (novels[nIdx].wordCount || 0) - wordCount);
+    saveToStorage('nv_novels', novels);
+  }
+
+  renderChapterList();
+  showToast('Chapter berhasil dihapus.', 'warning');
+}
+
+
+/* ════════════════════════════════════════════
+   UPDATE STATS (DOM Manipulation + LOOPING)
+════════════════════════════════════════════ */
+function updateStats() {
+  const novels   = loadFromStorage('nv_novels');
+  const chapters = loadFromStorage('nv_chapters');
+
+  // LOOPING: Hitung total word count dari semua novel
+  let totalWords = 0;
+  novels.forEach(n => { totalWords += (n.wordCount || 0); });
+
+  // LOOPING: Hitung novel berdasarkan status
+  let completedCount = 0;
+  let ongoingCount   = 0;
+  novels.forEach(n => {
+    if      (n.status === 'Completed') completedCount++;
+    else if (n.status === 'Ongoing')   ongoingCount++;
+  });
+
+  const statsHtml = `
+    <div class="stat-card">
+      <div class="stat-num">${novels.length}</div>
+      <div class="stat-label">Total Novel</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-num">${chapters.length}</div>
+      <div class="stat-label">Total Chapter</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-num">${(totalWords/1000).toFixed(1)}k</div>
+      <div class="stat-label">Total Kata</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-num">${ongoingCount}</div>
+      <div class="stat-label">Sedang Ditulis</div>
+    </div>`;
+
+  // DOM Manipulation: Update semua stats container
+  ['home-stats', 'app-stats'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.innerHTML = statsHtml;
+  });
+}
+
+
+/* ════════════════════════════════════════════
+   XSS PREVENTION — Escape HTML
+════════════════════════════════════════════ */
+function escapeHtml(str) {
+  if (!str) return '';
+  return str
+    .replace(/&/g,  '&amp;')
+    .replace(/</g,  '&lt;')
+    .replace(/>/g,  '&gt;')
+    .replace(/"/g,  '&quot;')
+    .replace(/'/g, '&#039;');
+}
+
+
+/* ════════════════════════════════════════════
+   INISIALISASI APLIKASI
+   SEQUENCE: Load data → Render → Update stats
+════════════════════════════════════════════ */
+function initApp() {
+  // SEQUENCE 1: Render novel list dari LocalStorage
+  renderNovelList();
+
+  // SEQUENCE 2: Update statistik
+  updateStats();
+
+  // SEQUENCE 3: Populate select di chapter manager
+  populateNovelSelect();
+
+  // SEQUENCE 4: Cek apakah ada data di LocalStorage → tampilkan notif selamat datang
+  const novels = loadFromStorage('nv_novels');
+  if (novels.length > 0) {
+    // IF: Ada data sebelumnya
+    setTimeout(() => {
+      showToast(`Selamat datang! ${novels.length} novel tersimpan.`, 'info');
+    }, 1000);
+  }
+
+  console.log('✅ NovelVerse initialized. LocalStorage key: nv_novels');
+}
+
+// Jalankan inisialisasi setelah DOM siap
+document.addEventListener('DOMContentLoaded', initApp);
+
+</script>
+</body>
+</html>
